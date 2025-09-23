@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% set page_title = "渠道管理" %}
+
+{% block content %}
+<div class="card">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="section-title">
+      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+      </svg>
+      渠道列表
+    </h3>
+    <button class="btn" onclick="showAddModal()">
+      <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+      </svg>
+      添加渠道
+    </button>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table" id="channelsTable">
+      <thead>
+        <tr>
+          <th>渠道代码</th>
+          <th>名称</th>
+          <th>API密钥</th>
+          <th>状态</th>
+          <th>创建时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="channelsTableBody">
+        <tr>
+          <td colspan="6" class="text-center text-muted">加载中...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 添加/编辑模态框 -->
+<div id="channelModal" class="modal-backdrop" style="display:none;">
+  <div class="modal">
+    <div class="title" id="modalTitle">添加渠道</div>
+    <form id="channelForm">
+      <div class="row">
+        <label>渠道代码</label>
+        <input type="text" class="input" id="channel_code" name="channel_code" required>
+      </div>
+      <div class="row">
+        <label>名称</label>
+        <input type="text" class="input" id="name" name="name" required>
+      </div>
+      <div class="row">
+        <label>API密钥</label>
+        <input type="text" class="input" id="api_key" name="api_key" required>
+      </div>
+      <div class="row">
+        <label>HMAC密钥</label>
+        <input type="text" class="input" id="secret_hmac" name="secret_hmac" required>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn secondary" onclick="hideModal()">取消</button>
+        <button type="submit" class="btn">保存</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { apiGet, apiPost, apiPut, apiDelete, showNotification } from "{{ url_for('static', path='assets/common.js') }}";
+
+let editingId = null;
+
+async function loadChannels() {
+  try {
+    const res = await apiGet('/api/channels');
+    const tbody = document.getElementById('channelsTableBody');
+    
+    if (res.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无渠道数据</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = res.data.map(channel => `
+      <tr>
+        <td><code>${channel.channel_code}</code></td>
+        <td>${channel.name}</td>
+        <td><code>${channel.api_key.substring(0, 8)}...</code></td>
+        <td><span class="badge ${channel.status === 'active' ? 'lv-info' : 'lv-warn'}">${channel.status === 'active' ? '活跃' : '禁用'}</span></td>
+        <td>${new Date(channel.created_at).toLocaleString('zh-CN')}</td>
+        <td>
+          <button class="btn secondary btn-sm" onclick="editChannel(${channel.id})">编辑</button>
+          <button class="btn danger btn-sm" onclick="deleteChannel(${channel.id}, '${channel.channel_code}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    showNotification('加载渠道数据失败', 'error');
+    console.error(err);
+  }
+}
+
+function showAddModal() {
+  editingId = null;
+  document.getElementById('modalTitle').textContent = '添加渠道';
+  document.getElementById('channelForm').reset();
+  document.getElementById('channelModal').style.display = 'flex';
+}
+
+function hideModal() {
+  document.getElementById('channelModal').style.display = 'none';
+}
+
+function editChannel(id) {
+  // 这里可以实现编辑功能
+  showNotification('编辑功能开发中...', 'info');
+}
+
+async function deleteChannel(id, code) {
+  if (!confirm(`确定要删除渠道 ${code} 吗？`)) return;
+  
+  try {
+    await apiDelete(`/api/channels/${id}`);
+    showNotification('渠道删除成功', 'success');
+    loadChannels();
+  } catch (err) {
+    showNotification('删除失败: ' + (err.data?.detail || err.message), 'error');
+  }
+}
+
+document.getElementById('channelForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+  
+  try {
+    if (editingId) {
+      await apiPut(`/api/channels/${editingId}`, data);
+      showNotification('渠道更新成功', 'success');
+    } else {
+      await apiPost('/api/channels', data);
+      showNotification('渠道创建成功', 'success');
+    }
+    
+    hideModal();
+    loadChannels();
+  } catch (err) {
+    showNotification('保存失败: ' + (err.data?.detail || err.message), 'error');
+  }
+});
+
+// 初始化
+loadChannels();
+</script>
+{% endblock %}

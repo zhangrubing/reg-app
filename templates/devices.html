@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% set page_title = "设备管理" %}
+
+{% block content %}
+<div class="card">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="section-title">
+      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+      </svg>
+      设备列表
+    </h3>
+    <div class="flex gap-2">
+      <button class="btn secondary" onclick="loadDevices()">
+        <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        </svg>
+        刷新
+      </button>
+    </div>
+  </div>
+  
+  <div class="grid cols-4 mb-4">
+    <div class="card kpi">
+      <div class="kpi-label">总设备数</div>
+      <div class="kpi-value" id="totalDevices">-</div>
+      <div class="kpi-pill"><span class="ok">●</span> 设备总数</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-label">已激活</div>
+      <div class="kpi-value" id="activatedDevices">-</div>
+      <div class="kpi-pill"><span class="ok">●</span> 已激活</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-label">待激活</div>
+      <div class="kpi-value" id="pendingDevices">-</div>
+      <div class="kpi-pill"><span class="warn">●</span> 待激活</div>
+    </div>
+    <div class="card kpi">
+      <div class="kpi-label">今日新增</div>
+      <div class="kpi-value" id="todayDevices">-</div>
+      <div class="kpi-pill"><span class="info">●</span> 今日新增</div>
+    </div>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table" id="devicesTable">
+      <thead>
+        <tr>
+          <th>设备序列号</th>
+          <th>状态</th>
+          <th>渠道</th>
+          <th>首次发现</th>
+          <th>最后活跃</th>
+          <th>激活时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="devicesTableBody">
+        <tr>
+          <td colspan="7" class="text-center text-muted">加载中...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script type="module">
+import { apiGet, apiDelete, showNotification } from "{{ url_for('static', path='assets/common.js') }}";
+
+async function loadDeviceStats() {
+  try {
+    const res = await apiGet('/api/devices/stats');
+    const stats = res.data;
+    
+    document.getElementById('totalDevices').textContent = stats.total;
+    document.getElementById('activatedDevices').textContent = stats.activated;
+    document.getElementById('pendingDevices').textContent = stats.pending;
+    document.getElementById('todayDevices').textContent = stats.today_new;
+  } catch (err) {
+    console.error('加载设备统计失败:', err);
+  }
+}
+
+async function loadDevices() {
+  try {
+    const res = await apiGet('/api/devices');
+    const tbody = document.getElementById('devicesTableBody');
+    
+    if (res.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">暂无设备数据</td></tr>';
+      return;
+    }
+    
+    tbody.innerHTML = res.data.map(device => `
+      <tr>
+        <td><code>${device.sn}</code></td>
+        <td><span class="badge ${device.status === 'activated' ? 'lv-info' : device.status === 'pending' ? 'lv-warn' : 'lv-error'}">${device.status}</span></td>
+        <td>${device.channel_name || '-'}</td>
+        <td>${new Date(device.first_seen).toLocaleString('zh-CN')}</td>
+        <td>${device.last_seen ? new Date(device.last_seen).toLocaleString('zh-CN') : '-'}</td>
+        <td>${device.activated_at ? new Date(device.activated_at).toLocaleString('zh-CN') : '-'}</td>
+        <td>
+          <button class="btn secondary btn-sm" onclick="viewDevice(${device.id})">查看</button>
+          <button class="btn danger btn-sm" onclick="deleteDevice(${device.id}, '${device.sn}')">删除</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    showNotification('加载设备数据失败', 'error');
+    console.error(err);
+  }
+}
+
+function viewDevice(id) {
+  // 这里可以实现查看设备详情的功能
+  showNotification('设备详情功能开发中...', 'info');
+}
+
+async function deleteDevice(id, sn) {
+  if (!confirm(`确定要删除设备 ${sn} 吗？`)) return;
+  
+  try {
+    await apiDelete(`/api/devices/${id}`);
+    showNotification('设备删除成功', 'success');
+    loadDevices();
+    loadDeviceStats();
+  } catch (err) {
+    showNotification('删除失败: ' + (err.data?.detail || err.message), 'error');
+  }
+}
+
+// 初始化
+loadDeviceStats();
+loadDevices();
+</script>
+{% endblock %}

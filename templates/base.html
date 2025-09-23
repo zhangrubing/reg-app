@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>!function(){try{var t=localStorage.getItem("theme");if(!t){t=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}document.documentElement.setAttribute("data-theme",t)}catch(e){}}();</script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={darkMode:["class","[data-theme='dark']"]}</script>
+  <link rel="stylesheet" href="{{ url_for('static', path='assets/style.css?v=1') }}">
+  <title>{{ app_name }} - {{ page_title or '' }}</title>
+</head>
+<body>
+<div class="container">
+  <aside class="sidebar">
+    <div class="brand">
+      <svg class="ico" width="36" height="36" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
+      </svg>
+      <span>软件注册与激活系统</span>
+    </div>
+    <div class="side-caption">REG-APP</div>
+    <nav class="nav">
+      {% set navs = [
+        ('/dashboard','仪表盘','home','m-dashboard'),
+        ('/channels','渠道管理','channel','m-channels'),
+        ('/devices','设备管理','device','m-devices'),
+        ('/activations','激活记录','key','m-activations'),
+        ('/licenses','许可证','license','m-licenses'),
+        ('/users','用户管理','user','m-users'),
+        ('/audit','审计日志','audit','m-audit'),
+        ('/about','关于','about','m-about')
+      ] %}
+      {% for href,label,icon,klass in navs %}
+        <a href="{{ href }}" class="{{ 'active' if request.url.path==href else '' }} {{ klass }}">
+          <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            {% if icon == 'home' %}
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            {% elif icon == 'channel' %}
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
+            {% elif icon == 'device' %}
+              <path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/>
+            {% elif icon == 'key' %}
+              <path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+            {% elif icon == 'license' %}
+              <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+            {% elif icon == 'user' %}
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            {% elif icon == 'audit' %}
+              <path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+            {% elif icon == 'about' %}
+              <path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/>
+            {% endif %}
+          </svg>
+          <span>{{ label }}</span>
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="footer">
+      登录用户：{{ user.username if user else '-' }}
+    </div>
+  </aside>
+  <main>
+    <div class="header">
+      <div><strong>{{ page_title or '' }}</strong></div>
+      <div class="flex">
+        <button class="btn secondary" id="theme-toggle">🌓 主题</button>
+        <button class="btn danger" onclick="logout()">退出</button>
+      </div>
+    </div>
+    <div class="content">{% block content %}{% endblock %}</div>
+  </main>
+</div>
+<script type="module">
+import { logout } from "{{ url_for('static', path='assets/common.js') }}"; 
+window.logout = logout;
+
+const KEY = 'theme'; 
+const btn = document.getElementById('theme-toggle');
+
+function setT(t) { 
+  document.documentElement.setAttribute('data-theme', t); 
+  try { localStorage.setItem(KEY, t); } catch(e) {} 
+}
+
+function getT() { 
+  return document.documentElement.getAttribute('data-theme') || 'dark'; 
+}
+
+btn?.addEventListener('click', () => { 
+  setT(getT() === 'dark' ? 'light' : 'dark'); 
+});
+
+try {
+  const saved = localStorage.getItem(KEY); 
+  const mq = window.matchMedia('(prefers-color-scheme: light)');
+  mq.addEventListener?.('change', e => { 
+    if (!saved) setT(e.matches ? 'light' : 'dark'); 
+  });
+} catch(e) {}
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="login-wrap">
+  <h2 class="text-center mb-4">登录系统</h2>
+  <form id="loginForm">
+    <div class="mb-3">
+      <label class="form-label">用户名</label>
+      <input type="text" class="input" id="username" name="username" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">密码</label>
+      <input type="password" class="input" id="password" name="password" required>
+    </div>
+    <div id="error" class="text-danger small mb-3" style="display:none;"></div>
+    <button type="submit" class="btn w-full">登录</button>
+  </form>
+  <div class="text-center mt-3 small text-muted">
+    默认用户名：admin，密码：admin123
+  </div>
+</div>
+
+<script type="module">
+import { apiPost } from "{{ url_for('static', path='assets/common.js') }}";
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errorEl = document.getElementById('error');
+  errorEl.style.display = 'none';
+  
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  
+  if (!username || !password) {
+    errorEl.textContent = '请输入用户名和密码';
+    errorEl.style.display = 'block';
+    return;
+  }
+  
+  try {
+    const res = await apiPost('/api/login', { username, password });
+    if (res.ok) {
+      window.location.href = '/dashboard';
+    } else {
+      errorEl.textContent = res.detail || '登录失败';
+      errorEl.style.display = 'block';
+    }
+  } catch (err) {
+    errorEl.textContent = '网络错误，请重试';
+    errorEl.style.display = 'block';
+  }
+});
+</script>
+{% endblock %}

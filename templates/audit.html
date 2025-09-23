@@ -1,0 +1,774 @@
+{% extends "base.html" %}
+
+{% block title %}审计日志 - 软件注册系统{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">审计日志</h1>
+        <p class="text-gray-600 dark:text-gray-400">查看系统审计日志和系统日志</p>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">今日审计日志</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="todayAuditLogs">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">系统日志总数</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalSystemLogs">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">7日趋势</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="weeklyTrend">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">错误日志</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="errorLogs">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 标签页导航 -->
+    <div class="mb-6">
+        <div class="border-b border-gray-200 dark:border-gray-700">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center" id="logTabs" role="tablist">
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg active" id="audit-logs-tab" data-tabs-target="#audit-logs" type="button" role="tab" aria-controls="audit-logs" aria-selected="true">
+                        审计日志
+                    </button>
+                </li>
+                <li class="mr-2" role="presentation">
+                    <button class="inline-block p-4 border-b-2 rounded-t-lg hover:text-gray-600 hover:border-gray-300 dark:hover:text-gray-300" id="system-logs-tab" data-tabs-target="#system-logs" type="button" role="tab" aria-controls="system-logs" aria-selected="false">
+                        系统日志
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 审计日志内容 -->
+    <div id="audit-logs" role="tabpanel" aria-labelledby="audit-logs-tab">
+        <!-- 搜索和筛选 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex flex-col sm:flex-row gap-4 flex-1">
+                    <div class="relative flex-1 max-w-xs">
+                        <input type="text" id="auditUsername" placeholder="搜索用户名..." 
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" id="auditAction" placeholder="搜索操作..." 
+                           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <input type="date" id="auditStartDate" 
+                           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <input type="date" id="auditEndDate" 
+                           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="searchAuditLogs()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        搜索
+                    </button>
+                    <button onclick="exportAuditLogs()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        导出
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 审计日志表格 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">时间</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">用户</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">详情</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">IP地址</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditLogsTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- 数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <button onclick="changeAuditPage(currentAuditPage - 1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        上一页
+                    </button>
+                    <button onclick="changeAuditPage(currentAuditPage + 1)" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        下一页
+                    </button>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            显示第 <span id="auditStartRecord">1</span> 到 <span id="auditEndRecord">10</span> 条，共 <span id="auditTotalRecords">0</span> 条记录
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button onclick="changeAuditPage(currentAuditPage - 1)" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span class="sr-only">上一页</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="auditPaginationNumbers" class="flex">
+                                <!-- 分页数字将通过JavaScript动态生成 -->
+                            </div>
+                            <button onclick="changeAuditPage(currentAuditPage + 1)" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span class="sr-only">下一页</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 系统日志内容 -->
+    <div id="system-logs" role="tabpanel" aria-labelledby="system-logs-tab" class="hidden">
+        <!-- 搜索和筛选 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div class="flex flex-col sm:flex-row gap-4 flex-1">
+                    <select id="systemLevel" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <option value="">全部级别</option>
+                        <option value="INFO">信息</option>
+                        <option value="WARNING">警告</option>
+                        <option value="ERROR">错误</option>
+                        <option value="CRITICAL">严重</option>
+                    </select>
+                    <input type="text" id="systemCategory" placeholder="搜索分类..." 
+                           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <input type="date" id="systemStartDate" 
+                           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <input type="date" id="systemEndDate" 
+                           class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="searchSystemLogs()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        搜索
+                    </button>
+                    <button onclick="cleanupLogs()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        清理旧日志
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 系统日志表格 -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead class="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">时间</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">级别</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">分类</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">消息</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">上下文</th>
+                        </tr>
+                    </thead>
+                    <tbody id="systemLogsTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- 数据将通过JavaScript动态加载 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
+                <div class="flex-1 flex justify-between sm:hidden">
+                    <button onclick="changeSystemPage(currentSystemPage - 1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        上一页
+                    </button>
+                    <button onclick="changeSystemPage(currentSystemPage + 1)" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                        下一页
+                    </button>
+                </div>
+                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                            显示第 <span id="systemStartRecord">1</span> 到 <span id="systemEndRecord">10</span> 条，共 <span id="systemTotalRecords">0</span> 条记录
+                        </p>
+                    </div>
+                    <div>
+                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                            <button onclick="changeSystemPage(currentSystemPage - 1)" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span class="sr-only">上一页</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <div id="systemPaginationNumbers" class="flex">
+                                <!-- 分页数字将通过JavaScript动态生成 -->
+                            </div>
+                            <button onclick="changeSystemPage(currentSystemPage + 1)" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <span class="sr-only">下一页</span>
+                                <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 日志详情模态框 -->
+<div id="logDetailModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">日志详情</h3>
+            <div id="logDetailContent" class="space-y-3 text-sm">
+                <!-- 日志详情将通过JavaScript动态填充 -->
+            </div>
+            <div class="flex justify-end pt-4">
+                <button onclick="closeLogDetailModal()" 
+                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentAuditPage = 1;
+let currentSystemPage = 1;
+let pageSize = 20;
+let auditLogs = [];
+let systemLogs = [];
+let currentTab = 'audit';
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatistics();
+    loadAuditLogs();
+    
+    // 标签页切换
+    document.getElementById('audit-logs-tab').addEventListener('click', function() {
+        switchTab('audit');
+    });
+    
+    document.getElementById('system-logs-tab').addEventListener('click', function() {
+        switchTab('system');
+    });
+    
+    // 搜索功能
+    document.getElementById('auditUsername').addEventListener('input', debounce(function() {
+        currentAuditPage = 1;
+        loadAuditLogs();
+    }, 300));
+    
+    document.getElementById('auditAction').addEventListener('input', debounce(function() {
+        currentAuditPage = 1;
+        loadAuditLogs();
+    }, 300));
+    
+    document.getElementById('systemLevel').addEventListener('change', function() {
+        currentSystemPage = 1;
+        loadSystemLogs();
+    });
+    
+    document.getElementById('systemCategory').addEventListener('input', debounce(function() {
+        currentSystemPage = 1;
+        loadSystemLogs();
+    }, 300));
+});
+
+// 切换标签页
+function switchTab(tab) {
+    currentTab = tab;
+    
+    // 更新标签样式
+    document.querySelectorAll('[data-tabs-target]').forEach(btn => {
+        btn.classList.remove('active', 'text-blue-600', 'border-blue-600');
+        btn.classList.add('hover:text-gray-600', 'hover:border-gray-300');
+    });
+    
+    document.getElementById(tab + '-logs-tab').classList.add('active', 'text-blue-600', 'border-blue-600');
+    document.getElementById(tab + '-logs-tab').classList.remove('hover:text-gray-600', 'hover:border-gray-300');
+    
+    // 显示/隐藏内容
+    document.getElementById('audit-logs').classList.toggle('hidden', tab !== 'audit');
+    document.getElementById('system-logs').classList.toggle('hidden', tab !== 'system');
+    
+    // 加载对应数据
+    if (tab === 'audit') {
+        loadAuditLogs();
+    } else {
+        loadSystemLogs();
+    }
+}
+
+// 加载统计数据
+async function loadStatistics() {
+    try {
+        const response = await API.get('/audit/statistics');
+        const stats = response.data;
+        
+        document.getElementById('todayAuditLogs').textContent = stats.today_audit_logs || 0;
+        document.getElementById('totalSystemLogs').textContent = stats.total_system_logs || 0;
+        
+        // 计算7日趋势
+        const trend = stats.weekly_trend || [];
+        const total = trend.reduce((sum, item) => sum + item.count, 0);
+        document.getElementById('weeklyTrend').textContent = total;
+        
+        // 计算错误日志
+        const errorCount = (stats.action_statistics || []).filter(item => 
+            item.action && (item.action.includes('error') || item.action.includes('fail'))
+        ).reduce((sum, item) => sum + item.count, 0);
+        document.getElementById('errorLogs').textContent = errorCount;
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+    }
+}
+
+// 加载审计日志
+async function loadAuditLogs() {
+    try {
+        const username = document.getElementById('auditUsername').value;
+        const action = document.getElementById('auditAction').value;
+        const startDate = document.getElementById('auditStartDate').value;
+        const endDate = document.getElementById('auditEndDate').value;
+        
+        const params = {
+            page: currentAuditPage,
+            page_size: pageSize,
+            username: username,
+            action: action,
+            start_date: startDate,
+            end_date: endDate
+        };
+        
+        const response = await API.get('/audit/logs', { params });
+        const data = response.data;
+        
+        auditLogs = data.items || [];
+        
+        renderAuditLogsTable();
+        renderAuditPagination(data.total || 0, data.pages || 1);
+    } catch (error) {
+        console.error('加载审计日志失败:', error);
+        Utils.showError('加载审计日志失败');
+    }
+}
+
+// 加载系统日志
+async function loadSystemLogs() {
+    try {
+        const level = document.getElementById('systemLevel').value;
+        const category = document.getElementById('systemCategory').value;
+        const startDate = document.getElementById('systemStartDate').value;
+        const endDate = document.getElementById('systemEndDate').value;
+        
+        const params = {
+            page: currentSystemPage,
+            page_size: pageSize,
+            level: level,
+            category: category,
+            start_date: startDate,
+            end_date: endDate
+        };
+        
+        const response = await API.get('/audit/system-logs', { params });
+        const data = response.data;
+        
+        systemLogs = data.items || [];
+        
+        renderSystemLogsTable();
+        renderSystemPagination(data.total || 0, data.pages || 1);
+    } catch (error) {
+        console.error('加载系统日志失败:', error);
+        Utils.showError('加载系统日志失败');
+    }
+}
+
+// 渲染审计日志表格
+function renderAuditLogsTable() {
+    const tbody = document.getElementById('auditLogsTableBody');
+    tbody.innerHTML = '';
+    
+    if (auditLogs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm">暂无审计日志</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    auditLogs.forEach(log => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+        
+        const levelClass = getLevelClass(log.action);
+        
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${formatDateTime(log.created_at)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                ${log.username}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${levelClass}">
+                    ${log.action}
+                </span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate" title="${log.detail}">
+                ${log.detail}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${log.ip || '-'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <button onclick="viewLogDetail('${log.id}', 'audit')" 
+                        class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                    详情
+                </button>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+// 渲染系统日志表格
+function renderSystemLogsTable() {
+    const tbody = document.getElementById('systemLogsTableBody');
+    tbody.innerHTML = '';
+    
+    if (systemLogs.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                    </svg>
+                    <p class="mt-2 text-sm">暂无系统日志</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    systemLogs.forEach(log => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+        
+        const levelClass = getSystemLevelClass(log.level);
+        
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${formatDateTime(log.created_at)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${levelClass}">
+                    ${log.level}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${log.category}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-md" title="${log.message}">
+                ${log.message}
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-900 dark:text-white max-w-xs truncate" title="${log.context || ''}">
+                ${log.context || '-'}
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+// 获取级别样式类
+function getLevelClass(action) {
+    if (action.includes('login')) return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100';
+    if (action.includes('create') || action.includes('add')) return 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100';
+    if (action.includes('update') || action.includes('edit')) return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100';
+    if (action.includes('delete') || action.includes('remove')) return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
+    return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+}
+
+function getSystemLevelClass(level) {
+    switch (level) {
+        case 'ERROR': return 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
+        case 'WARNING': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100';
+        case 'INFO': return 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100';
+        case 'CRITICAL': return 'bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100';
+        default: return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+    }
+}
+
+// 渲染分页
+function renderAuditPagination(total, pages) {
+    const paginationNumbers = document.getElementById('auditPaginationNumbers');
+    paginationNumbers.innerHTML = '';
+    
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentAuditPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(pages, startPage + maxButtons - 1);
+    
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const button = document.createElement('button');
+        button.onclick = () => changeAuditPage(i);
+        button.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+            i === currentAuditPage 
+                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900 dark:border-blue-500 dark:text-blue-300'
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700'
+        }`;
+        button.textContent = i;
+        paginationNumbers.appendChild(button);
+    }
+    
+    updateAuditPaginationInfo(total);
+}
+
+function renderSystemPagination(total, pages) {
+    const paginationNumbers = document.getElementById('systemPaginationNumbers');
+    paginationNumbers.innerHTML = '';
+    
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentSystemPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(pages, startPage + maxButtons - 1);
+    
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const button = document.createElement('button');
+        button.onclick = () => changeSystemPage(i);
+        button.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+            i === currentSystemPage 
+                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900 dark:border-blue-500 dark:text-blue-300'
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700'
+        }`;
+        button.textContent = i;
+        paginationNumbers.appendChild(button);
+    }
+    
+    updateSystemPaginationInfo(total);
+}
+
+// 更新分页信息
+function updateAuditPaginationInfo(total) {
+    const startRecord = (currentAuditPage - 1) * pageSize + 1;
+    const endRecord = Math.min(currentAuditPage * pageSize, total);
+    
+    document.getElementById('auditStartRecord').textContent = startRecord;
+    document.getElementById('auditEndRecord').textContent = endRecord;
+    document.getElementById('auditTotalRecords').textContent = total;
+}
+
+function updateSystemPaginationInfo(total) {
+    const startRecord = (currentSystemPage - 1) * pageSize + 1;
+    const endRecord = Math.min(currentSystemPage * pageSize, total);
+    
+    document.getElementById('systemStartRecord').textContent = startRecord;
+    document.getElementById('systemEndRecord').textContent = endRecord;
+    document.getElementById('systemTotalRecords').textContent = total;
+}
+
+// 切换页面
+function changeAuditPage(page) {
+    if (page < 1) return;
+    currentAuditPage = page;
+    loadAuditLogs();
+}
+
+function changeSystemPage(page) {
+    if (page < 1) return;
+    currentSystemPage = page;
+    loadSystemLogs();
+}
+
+// 搜索功能
+function searchAuditLogs() {
+    currentAuditPage = 1;
+    loadAuditLogs();
+}
+
+function searchSystemLogs() {
+    currentSystemPage = 1;
+    loadSystemLogs();
+}
+
+// 导出审计日志
+async function exportAuditLogs() {
+    try {
+        const username = document.getElementById('auditUsername').value;
+        const action = document.getElementById('auditAction').value;
+        const startDate = document.getElementById('auditStartDate').value;
+        const endDate = document.getElementById('auditEndDate').value;
+        
+        const params = {
+            username: username,
+            action: action,
+            start_date: startDate,
+            end_date: endDate,
+            export: true
+        };
+        
+        const response = await API.get('/audit/logs', { 
+            params: params,
+            responseType: 'blob'
+        });
+        
+        // 创建下载链接
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `审计日志导出_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        Utils.showSuccess('审计日志导出成功');
+    } catch (error) {
+        console.error('导出审计日志失败:', error);
+        Utils.showError('导出审计日志失败');
+    }
+}
+
+// 清理旧日志
+async function cleanupLogs() {
+    const days = prompt('请输入要保留的天数（7-365）：', '30');
+    if (!days || isNaN(days) || days < 7 || days > 365) {
+        Utils.showError('请输入有效的天数（7-365）');
+        return;
+    }
+    
+    if (!confirm(`确定要清理${days}天前的日志吗？此操作不可恢复。`)) return;
+    
+    try {
+        const response = await API.delete('/audit/cleanup', { params: { days: parseInt(days) } });
+        const result = response.data;
+        
+        Utils.showSuccess(`日志清理完成，共清理${result.audit_logs_deleted + result.system_logs_deleted}条日志`);
+        loadStatistics();
+        if (currentTab === 'audit') {
+            loadAuditLogs();
+        } else {
+            loadSystemLogs();
+        }
+    } catch (error) {
+        console.error('清理日志失败:', error);
+        Utils.showError('清理日志失败');
+    }
+}
+
+// 查看日志详情
+function viewLogDetail(id, type) {
+    const log = type === 'audit' 
+        ? auditLogs.find(l => l.id == id)
+        : systemLogs.find(l => l.id == id);
+    
+    if (!log) return;
+    
+    let content = '';
+    if (type === 'audit') {
+        content = `
+            <div><strong>时间：</strong> ${formatDateTime(log.created_at)}</div>
+            <div><strong>用户：</strong> ${log.username}</div>
+            <div><strong>操作：</strong> ${log.action}</div>
+            <div><strong>详情：</strong> ${log.detail}</div>
+            <div><strong>IP地址：</strong> ${log.ip || '-'}</div>
+            <div><strong>用户代理：</strong> ${log.user_agent || '-'}</div>
+        `;
+    } else {
+        content = `
+            <div><strong>时间：</strong> ${formatDateTime(log.created_at)}</div>
+            <div><strong>级别：</strong> ${log.level}</div>
+            <div><strong>分类：</strong> ${log.category}</div>
+            <div><strong>消息：</strong> ${log.message}</div>
+            <div><strong>上下文：</strong> ${log.context || '-'}</div>
+        `;
+    }
+    
+    document.getElementById('logDetailContent').innerHTML = content;
+    document.getElementById('logDetailModal').classList.remove('hidden');
+}
+
+// 关闭日志详情模态框
+function closeLogDetailModal() {
+    document.getElementById('logDetailModal').classList.add('hidden');
+}
+
+// 工具函数
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('zh-CN');
+}
+</script>
+{% endblock %}

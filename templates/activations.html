@@ -1,0 +1,543 @@
+{% extends "base.html" %}
+
+{% block title %}激活记录管理 - 软件注册系统{% endblock %}
+
+{% block content %}
+<div class="p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">激活记录管理</h1>
+        <p class="text-gray-600 dark:text-gray-400">管理系统中的所有激活记录</p>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">总激活次数</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalActivations">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">今日激活</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="todayActivations">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
+                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">待使用激活码</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="pendingCodes">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="p-2 bg-red-100 dark:bg-red-900 rounded-lg">
+                    <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">已失效激活码</p>
+                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="expiredCodes">0</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作栏 -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div class="flex flex-col sm:flex-row gap-4 flex-1">
+                <div class="relative flex-1 max-w-xs">
+                    <input type="text" id="searchInput" placeholder="搜索激活码、设备SN、渠道名称..." 
+                           class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <select id="statusFilter" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <option value="">全部状态</option>
+                    <option value="pending">待使用</option>
+                    <option value="used">已使用</option>
+                    <option value="expired">已失效</option>
+                </select>
+                <select id="channelFilter" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                    <option value="">全部渠道</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="generateCodes()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    批量生成激活码
+                </button>
+                <button onclick="exportCodes()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                    导出激活码
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 激活记录表格 -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead class="bg-gray-50 dark:bg-gray-700">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">激活码</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">状态</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">渠道</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">设备SN</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">生成时间</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">使用时间</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">过期时间</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="activationsTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                    <!-- 数据将通过JavaScript动态加载 -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分页 -->
+        <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
+            <div class="flex-1 flex justify-between sm:hidden">
+                <button onclick="changePage(currentPage - 1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    上一页
+                </button>
+                <button onclick="changePage(currentPage + 1)" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                    下一页
+                </button>
+            </div>
+            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        显示第 <span id="startRecord">1</span> 到 <span id="endRecord">10</span> 条，共 <span id="totalRecords">0</span> 条记录
+                    </p>
+                </div>
+                <div>
+                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                        <button onclick="changePage(currentPage - 1)" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <span class="sr-only">上一页</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="paginationNumbers" class="flex">
+                            <!-- 分页数字将通过JavaScript动态生成 -->
+                        </div>
+                        <button onclick="changePage(currentPage + 1)" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <span class="sr-only">下一页</span>
+                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 批量生成激活码模态框 -->
+<div id="generateModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">批量生成激活码</h3>
+            <form id="generateForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">数量</label>
+                    <input type="number" id="generateCount" min="1" max="1000" value="10" 
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">渠道</label>
+                    <select id="generateChannel" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                        <option value="">选择渠道（可选）</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">有效期（天）</label>
+                    <input type="number" id="generateExpiry" min="1" max="3650" value="365" 
+                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeGenerateModal()" 
+                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        取消
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        生成
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let currentPage = 1;
+let pageSize = 20;
+let totalPages = 1;
+let activations = [];
+
+// 页面加载时初始化
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatistics();
+    loadActivations();
+    loadChannels();
+    
+    // 搜索功能
+    document.getElementById('searchInput').addEventListener('input', debounce(function() {
+        currentPage = 1;
+        loadActivations();
+    }, 300));
+    
+    // 状态筛选
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        currentPage = 1;
+        loadActivations();
+    });
+    
+    // 渠道筛选
+    document.getElementById('channelFilter').addEventListener('change', function() {
+        currentPage = 1;
+        loadActivations();
+    });
+});
+
+// 加载统计数据
+async function loadStatistics() {
+    try {
+        const response = await API.get('/activations/statistics');
+        const stats = response.data;
+        
+        document.getElementById('totalActivations').textContent = stats.total_activations || 0;
+        document.getElementById('todayActivations').textContent = stats.today_activations || 0;
+        document.getElementById('pendingCodes').textContent = stats.pending_codes || 0;
+        document.getElementById('expiredCodes').textContent = stats.expired_codes || 0;
+    } catch (error) {
+        console.error('加载统计数据失败:', error);
+    }
+}
+
+// 加载激活记录列表
+async function loadActivations() {
+    try {
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        const channelId = document.getElementById('channelFilter').value;
+        
+        const params = {
+            page: currentPage,
+            page_size: pageSize,
+            search: search,
+            status: status,
+            channel_id: channelId
+        };
+        
+        const response = await API.get('/activations', { params });
+        const data = response.data;
+        
+        activations = data.items || [];
+        totalPages = data.pages || 1;
+        
+        renderActivationsTable();
+        renderPagination();
+        updatePaginationInfo(data.total || 0);
+    } catch (error) {
+        console.error('加载激活记录失败:', error);
+        Utils.showError('加载激活记录失败');
+    }
+}
+
+// 加载渠道列表
+async function loadChannels() {
+    try {
+        const response = await API.get('/channels');
+        const channels = response.data || [];
+        
+        const channelFilter = document.getElementById('channelFilter');
+        const generateChannel = document.getElementById('generateChannel');
+        
+        channels.forEach(channel => {
+            const option1 = new Option(channel.name, channel.id);
+            const option2 = new Option(channel.name, channel.id);
+            channelFilter.add(option1);
+            generateChannel.add(option2.cloneNode(true));
+        });
+    } catch (error) {
+        console.error('加载渠道列表失败:', error);
+    }
+}
+
+// 渲染激活记录表格
+function renderActivationsTable() {
+    const tbody = document.getElementById('activationsTableBody');
+    tbody.innerHTML = '';
+    
+    if (activations.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <p class="mt-2 text-sm">暂无激活记录</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    activations.forEach(activation => {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
+        
+        const statusClass = getStatusClass(activation.status);
+        const statusText = getStatusText(activation.status);
+        
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                ${activation.code}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+                    ${statusText}
+                </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${activation.channel_name || '-'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900 dark:text-white">
+                ${activation.device_sn || '-'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${formatDateTime(activation.created_at)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${activation.used_at ? formatDateTime(activation.used_at) : '-'}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                ${formatDateTime(activation.expires_at)}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                    <button onclick="viewActivation('${activation.id}')" 
+                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
+                        查看
+                    </button>
+                    ${activation.status === 'pending' ? `
+                        <button onclick="invalidateCode('${activation.id}')" 
+                                class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                            作废
+                        </button>
+                    ` : ''}
+                </div>
+            </td>
+        `;
+        
+        tbody.appendChild(row);
+    });
+}
+
+// 获取状态样式类
+function getStatusClass(status) {
+    const classes = {
+        'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
+        'used': 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+        'expired': 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
+        'invalidated': 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100'
+    };
+    return classes[status] || classes['pending'];
+}
+
+// 获取状态文本
+function getStatusText(status) {
+    const texts = {
+        'pending': '待使用',
+        'used': '已使用',
+        'expired': '已过期',
+        'invalidated': '已作废'
+    };
+    return texts[status] || status;
+}
+
+// 渲染分页
+function renderPagination() {
+    const paginationNumbers = document.getElementById('paginationNumbers');
+    paginationNumbers.innerHTML = '';
+    
+    const maxButtons = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+    
+    if (endPage - startPage < maxButtons - 1) {
+        startPage = Math.max(1, endPage - maxButtons + 1);
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const button = document.createElement('button');
+        button.onclick = () => changePage(i);
+        button.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+            i === currentPage 
+                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900 dark:border-blue-500 dark:text-blue-300' 
+                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700'
+        }`;
+        button.textContent = i;
+        paginationNumbers.appendChild(button);
+    }
+}
+
+// 更新分页信息
+function updatePaginationInfo(total) {
+    const startRecord = (currentPage - 1) * pageSize + 1;
+    const endRecord = Math.min(currentPage * pageSize, total);
+    
+    document.getElementById('startRecord').textContent = startRecord;
+    document.getElementById('endRecord').textContent = endRecord;
+    document.getElementById('totalRecords').textContent = total;
+}
+
+// 切换页面
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    loadActivations();
+}
+
+// 查看激活记录详情
+async function viewActivation(id) {
+    try {
+        const response = await API.get(`/activations/${id}`);
+        const activation = response.data;
+        
+        // 这里可以显示详情模态框
+        alert(`激活码详情:\n激活码: ${activation.code}\n状态: ${getStatusText(activation.status)}\n渠道: ${activation.channel_name || '-'}\n设备SN: ${activation.device_sn || '-'}\n生成时间: ${formatDateTime(activation.created_at)}\n使用时间: ${activation.used_at ? formatDateTime(activation.used_at) : '-'}\n过期时间: ${formatDateTime(activation.expires_at)}`);
+    } catch (error) {
+        console.error('获取激活记录详情失败:', error);
+        Utils.showError('获取激活记录详情失败');
+    }
+}
+
+// 作废激活码
+async function invalidateCode(id) {
+    if (!confirm('确定要作废此激活码吗？')) return;
+    
+    try {
+        await API.post(`/activations/${id}/invalidate`);
+        Utils.showSuccess('激活码已作废');
+        loadActivations();
+        loadStatistics();
+    } catch (error) {
+        console.error('作废激活码失败:', error);
+        Utils.showError('作废激活码失败');
+    }
+}
+
+// 批量生成激活码
+function generateCodes() {
+    document.getElementById('generateModal').classList.remove('hidden');
+}
+
+// 关闭生成模态框
+function closeGenerateModal() {
+    document.getElementById('generateModal').classList.add('hidden');
+    document.getElementById('generateForm').reset();
+}
+
+// 提交生成表单
+document.getElementById('generateForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const count = document.getElementById('generateCount').value;
+    const channelId = document.getElementById('generateChannel').value;
+    const expiryDays = document.getElementById('generateExpiry').value;
+    
+    try {
+        await API.post('/activations/generate', {
+            count: parseInt(count),
+            channel_id: channelId || null,
+            expiry_days: parseInt(expiryDays)
+        });
+        
+        Utils.showSuccess(`成功生成 ${count} 个激活码`);
+        closeGenerateModal();
+        loadActivations();
+        loadStatistics();
+    } catch (error) {
+        console.error('生成激活码失败:', error);
+        Utils.showError('生成激活码失败');
+    }
+});
+
+// 导出激活码
+async function exportCodes() {
+    try {
+        const search = document.getElementById('searchInput').value;
+        const status = document.getElementById('statusFilter').value;
+        const channelId = document.getElementById('channelFilter').value;
+        
+        const params = {
+            search: search,
+            status: status,
+            channel_id: channelId,
+            export: true
+        };
+        
+        const response = await API.get('/activations', { 
+            params: params,
+            responseType: 'blob'
+        });
+        
+        // 创建下载链接
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `激活码导出_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+        
+        Utils.showSuccess('激活码导出成功');
+    } catch (error) {
+        console.error('导出激活码失败:', error);
+        Utils.showError('导出激活码失败');
+    }
+}
+
+// 工具函数
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleString('zh-CN');
+}
+</script>
+{% endblock %}

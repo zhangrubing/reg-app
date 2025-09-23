@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% set page_title = "首页" %}
+
+{% block content %}
+<div class="text-center" style="margin-top: 20vh;">
+  <h1 class="text-4xl font-bold mb-4">软件注册与激活系统</h1>
+  <p class="text-xl text-muted mb-8">专业的软件授权管理解决方案</p>
+  
+  <div class="grid cols-3 max-w-4xl mx-auto">
+    <div class="card">
+      <div class="text-3xl mb-2">🔐</div>
+      <h3 class="font-bold mb-2">安全认证</h3>
+      <p class="text-muted">基于JWT和HMAC的多重安全认证机制</p>
+    </div>
+    <div class="card">
+      <div class="text-3xl mb-2">📊</div>
+      <h3 class="font-bold mb-2">实时监控</h3>
+      <p class="text-muted">实时跟踪设备激活状态和授权使用情况</p>
+    </div>
+    <div class="card">
+      <div class="text-3xl mb-2">🌐</div>
+      <h3 class="font-bold mb-2">渠道管理</h3>
+      <p class="text-muted">灵活的渠道授权和分销管理功能</p>
+    </div>
+  </div>
+  
+  <div class="mt-8">
+    <a href="/dashboard" class="btn">
+      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+      </svg>
+      进入系统
+    </a>
+  </div>
+</div>
+{% endblock %}
