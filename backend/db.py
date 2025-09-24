@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
   token_version INTEGER NOT NULL DEFAULT 0,
   mfa_secret TEXT,
   mfa_enabled INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_login_at TIMESTAMP,
   last_login_ip TEXT,
@@ -50,6 +51,7 @@ CREATE TABLE IF NOT EXISTS devices (
   first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   activated_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (channel_id) REFERENCES channels(id)
 );
 

@@ -39,7 +39,7 @@ class UserListResponse(BaseModel):
 @router.get("/statistics", dependencies=[Depends(require_user)])
 async def get_user_statistics():
     """获取用户统计信息"""
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         # 总用户数
         cursor = await db.execute("SELECT COUNT(*) FROM users")
         total_users = (await cursor.fetchone())[0]
@@ -55,7 +55,7 @@ async def get_user_statistics():
         # 今日登录用户
         today = datetime.now().strftime("%Y-%m-%d")
         cursor = await db.execute(
-            "SELECT COUNT(DISTINCT user_id) FROM audit_logs WHERE action = 'login' AND DATE(created_at) = DATE(?)",
+            "SELECT COUNT(DISTINCT username) FROM audit_logs WHERE action = 'login' AND DATE(created_at) = DATE(?)",
             (today,)
         )
         today_login = (await cursor.fetchone())[0]
@@ -83,7 +83,7 @@ async def get_users(
     
     offset = (page - 1) * page_size
     
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         # 构建查询条件
         where_conditions = []
         params = []
@@ -145,7 +145,7 @@ async def get_users(
 @router.get("/{user_id}", response_model=UserResponse, dependencies=[Depends(require_admin)])
 async def get_user(user_id: int):
     """获取用户详情"""
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         cursor = await db.execute(
             "SELECT id, username, is_admin, status, created_at, last_login FROM users WHERE id = ?",
             (user_id,)
@@ -170,7 +170,7 @@ async def create_user(user: UserCreate):
     from ..crypto import hash_password
     
     # 检查用户名是否已存在
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         cursor = await db.execute("SELECT id FROM users WHERE username = ?", (user.username,))
         if await cursor.fetchone():
             raise HTTPException(status_code=400, detail="用户名已存在")
@@ -204,7 +204,7 @@ async def update_user(user_id: int, user_update: UserUpdate):
     """更新用户"""
     from ..crypto import hash_password
     
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         # 检查用户是否存在
         cursor = await db.execute("SELECT username FROM users WHERE id = ?", (user_id,))
         row = await cursor.fetchone()
@@ -280,7 +280,7 @@ async def update_user(user_id: int, user_update: UserUpdate):
 @router.delete("/{user_id}", dependencies=[Depends(require_admin)])
 async def delete_user(user_id: int):
     """删除用户"""
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         # 检查用户是否存在
         cursor = await db.execute("SELECT username FROM users WHERE id = ?", (user_id,))
         row = await cursor.fetchone()
@@ -311,7 +311,7 @@ async def delete_user(user_id: int):
 @router.post("/{user_id}/toggle-status", response_model=UserResponse, dependencies=[Depends(require_admin)])
 async def toggle_user_status(user_id: int):
     """切换用户状态"""
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         # 检查用户是否存在
         cursor = await db.execute("SELECT status, username FROM users WHERE id = ?", (user_id,))
         row = await cursor.fetchone()
@@ -350,7 +350,7 @@ async def toggle_user_status(user_id: int):
 @router.post("/{user_id}/toggle-admin", response_model=UserResponse, dependencies=[Depends(require_admin)])
 async def toggle_user_admin(user_id: int):
     """切换用户管理员权限"""
-    async with aiosqlite.connect(settings.DATABASE_PATH) as db:
+    async with aiosqlite.connect(DATABASE_PATH) as db:
         # 检查用户是否存在
         cursor = await db.execute("SELECT is_admin, username FROM users WHERE id = ?", (user_id,))
         row = await cursor.fetchone()

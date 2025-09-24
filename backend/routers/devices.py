@@ -32,7 +32,7 @@ async def api_get_devices(user: dict = Depends(require_user)):
                    c.channel_code, c.name as channel_name
             FROM devices d
             LEFT JOIN channels c ON d.channel_id = c.id
-            ORDER BY d.created_at DESC
+            ORDER BY d.first_seen DESC
         """)).fetchall()
         
         for row in rows:
@@ -48,6 +48,37 @@ async def api_get_devices(user: dict = Depends(require_user)):
             })
     
     return JSONResponse({"ok": True, "data": devices})
+
+
+@router.get("/api/devices/stats")
+async def api_get_device_stats(user: dict = Depends(require_user)):
+    """API获取设备统计"""
+    stats = {}
+    
+    async with aiosqlite.connect(DB_PATH) as db:
+        # 总设备数
+        row = await (await db.execute("SELECT COUNT(*) FROM devices")).fetchone()
+        stats["total"] = row[0] if row else 0
+        
+        # 已激活设备数
+        row = await (await db.execute(
+            "SELECT COUNT(*) FROM devices WHERE status = 'activated'"
+        )).fetchone()
+        stats["activated"] = row[0] if row else 0
+        
+        # 待激活设备数
+        row = await (await db.execute(
+            "SELECT COUNT(*) FROM devices WHERE status = 'pending'"
+        )).fetchone()
+        stats["pending"] = row[0] if row else 0
+        
+        # 今日新增设备
+        row = await (await db.execute(
+            "SELECT COUNT(*) FROM devices WHERE date(first_seen) = date('now')"
+        )).fetchone()
+        stats["today_new"] = row[0] if row else 0
+    
+    return JSONResponse({"ok": True, "data": stats})
 
 
 @router.get("/api/devices/{device_id}")
@@ -136,34 +167,3 @@ async def api_delete_device(
         await db.commit()
     
     return JSONResponse({"ok": True})
-
-
-@router.get("/api/devices/stats")
-async def api_get_device_stats(user: dict = Depends(require_user)):
-    """API获取设备统计"""
-    stats = {}
-    
-    async with aiosqlite.connect(DB_PATH) as db:
-        # 总设备数
-        row = await (await db.execute("SELECT COUNT(*) FROM devices")).fetchone()
-        stats["total"] = row[0] if row else 0
-        
-        # 已激活设备数
-        row = await (await db.execute(
-            "SELECT COUNT(*) FROM devices WHERE status = 'activated'"
-        )).fetchone()
-        stats["activated"] = row[0] if row else 0
-        
-        # 待激活设备数
-        row = await (await db.execute(
-            "SELECT COUNT(*) FROM devices WHERE status = 'pending'"
-        )).fetchone()
-        stats["pending"] = row[0] if row else 0
-        
-        # 今日新增设备
-        row = await (await db.execute(
-            "SELECT COUNT(*) FROM devices WHERE date(first_seen) = date('now')"
-        )).fetchone()
-        stats["today_new"] = row[0] if row else 0
-    
-    return JSONResponse({"ok": True, "data": stats})

@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% set page_title = "许可证管理" %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h2>许可证列表</h2>
+    <button class="btn primary" onclick="createLicense()">新建许可证</button>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table" id="licenses-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>许可证密钥</th>
+            <th>产品名称</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>过期时间</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="licenses-tbody">
+          <tr><td colspan="7" class="text-center">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination" id="licenses-pagination"></div>
+  </div>
+</div>
+
+<div class="card mt-4">
+  <div class="card-header">
+    <h3>许可证统计</h3>
+  </div>
+  <div class="card-body">
+    <div class="stats-grid" id="license-stats">
+      <div class="stat-card">
+        <div class="stat-title">总许可证数</div>
+        <div class="stat-value" id="total-licenses">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">活跃许可证</div>
+        <div class="stat-value" id="active-licenses">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">已过期</div>
+        <div class="stat-value" id="expired-licenses">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">本月新增</div>
+        <div class="stat-value" id="monthly-licenses">-</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 创建许可证模态框 -->
+<div class="modal" id="create-license-modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>新建许可证</h3>
+      <span class="close" onclick="closeModal()">&times;</span>
+    </div>
+    <div class="modal-body">
+      <form id="create-license-form">
+        <div class="form-group">
+          <label>产品名称</label>
+          <input type="text" name="product_name" required>
+        </div>
+        <div class="form-group">
+          <label>有效期（天）</label>
+          <input type="number" name="valid_days" value="365" required>
+        </div>
+        <div class="form-group">
+          <label>最大激活次数</label>
+          <input type="number" name="max_activations" value="1" required>
+        </div>
+        <div class="form-group">
+          <label>备注</label>
+          <textarea name="notes" rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn secondary" onclick="closeModal()">取消</button>
+          <button type="submit" class="btn primary">创建</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentPage = 1;
+let pageSize = 20;
+
+// 页面加载时获取数据
+document.addEventListener('DOMContentLoaded', function() {
+  loadLicenses();
+  loadLicenseStats();
+});
+
+// 加载许可证列表
+async function loadLicenses(page = 1) {
+  try {
+    const response = await fetch(`/admin/licenses?page=${page}&size=${pageSize}`);
+    const data = await response.json();
+    
+    if (response.ok) {
+      renderLicenses(data.items);
+      renderPagination(data.page, data.pages, data.total);
+    } else {
+      showError('加载许可证列表失败');
+    }
+  } catch (error) {
+    showError('网络错误：' + error.message);
+  }
+}
+
+// 渲染许可证列表
+function renderLicenses(licenses) {
+  const tbody = document.getElementById('licenses-tbody');
+  if (licenses.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center">暂无数据</td></tr>';
+    return;
+  }
+  
+  tbody.innerHTML = licenses.map(license => `
+    <tr>
+      <td>${license.id}</td>
+      <td><code>${license.license_key || '-'}</code></td>
+      <td>${license.product_name || '-'}</td>
+      <td><span class="badge ${getStatusClass(license.status)}">${getStatusText(license.status)}</span></td>
+      <td>${formatDate(license.created_at)}</td>
+      <td>${formatDate(license.expires_at)}</td>
+      <td>
+        <button class="btn small info" onclick="viewLicense(${license.id})">查看</button>
+        <button class="btn small danger" onclick="revokeLicense(${license.id})">吊销</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+// 加载许可证统计
+async function loadLicenseStats() {
+  try {
+    const response = await fetch('/admin/licenses/statistics');
+    const data = await response.json();
+    
+    if (response.ok) {
+      document.getElementById('total-licenses').textContent = data.total || 0;
+      document.getElementById('active-licenses').textContent = data.active || 0;
+      document.getElementById('expired-licenses').textContent = data.expired || 0;
+      document.getElementById('monthly-licenses').textContent = data.this_month_created || 0;
+    }
+  } catch (error) {
+    console.error('加载统计失败:', error);
+  }
+}
+
+// 创建许可证
+function createLicense() {
+  document.getElementById('create-license-modal').style.display = 'block';
+}
+
+// 关闭模态框
+function closeModal() {
+  document.getElementById('create-license-modal').style.display = 'none';
+  document.getElementById('create-license-form').reset();
+}
+
+// 提交创建表单
+document.getElementById('create-license-form').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData);
+  
+  try {
+    const response = await fetch('/admin/licenses', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (response.ok) {
+      showSuccess('许可证创建成功');
+      closeModal();
+      loadLicenses(currentPage);
+      loadLicenseStats();
+    } else {
+      const error = await response.json();
+      showError(error.message || '创建失败');
+    }
+  } catch (error) {
+    showError('网络错误：' + error.message);
+  }
+});
+
+// 查看许可证详情
+function viewLicense(id) {
+  // 实现查看详情逻辑
+  console.log('查看许可证:', id);
+}
+
+// 吊销许可证
+async function revokeLicense(id) {
+  if (!confirm('确定要吊销此许可证吗？')) return;
+  
+  try {
+    const response = await fetch(`/admin/licenses/${id}/revoke`, {
+      method: 'POST'
+    });
+    
+    if (response.ok) {
+      showSuccess('许可证已吊销');
+      loadLicenses(currentPage);
+      loadLicenseStats();
+    } else {
+      showError('吊销失败');
+    }
+  } catch (error) {
+    showError('网络错误：' + error.message);
+  }
+}
+
+// 渲染分页
+function renderPagination(currentPage, totalPages, totalItems) {
+  const pagination = document.getElementById('licenses-pagination');
+  if (totalPages <= 1) {
+    pagination.innerHTML = '';
+    return;
+  }
+  
+  let html = '';
+  if (currentPage > 1) {
+    html += `<button class="btn small" onclick="loadLicenses(${currentPage - 1})">上一页</button>`;
+  }
+  
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === currentPage) {
+      html += `<button class="btn small primary" disabled>${i}</button>`;
+    } else if (Math.abs(i - currentPage) <= 2 || i === 1 || i === totalPages) {
+      html += `<button class="btn small" onclick="loadLicenses(${i})">${i}</button>`;
+    } else if (i === currentPage - 3 || i === currentPage + 3) {
+      html += `<span>...</span>`;
+    }
+  }
+  
+  if (currentPage < totalPages) {
+    html += `<button class="btn small" onclick="loadLicenses(${currentPage + 1})">下一页</button>`;
+  }
+  
+  pagination.innerHTML = html;
+}
+
+// 工具函数
+function getStatusClass(status) {
+  const classes = {
+    'active': 'success',
+    'expired': 'danger',
+    'revoked': 'warning'
+  };
+  return classes[status] || 'secondary';
+}
+
+function getStatusText(status) {
+  const texts = {
+    'active': '活跃',
+    'expired': '已过期',
+    'revoked': '已吊销'
+  };
+  return texts[status] || status;
+}
+
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleString('zh-CN');
+}
+
+function showError(message) {
+  // 实现错误提示
+  console.error(message);
+  alert('错误：' + message);
+}
+
+function showSuccess(message) {
+  // 实现成功提示
+  console.log(message);
+  alert('成功：' + message);
+}
+
+// 点击模态框外部关闭
+window.onclick = function(event) {
+  const modal = document.getElementById('create-license-modal');
+  if (event.target === modal) {
+    closeModal();
+  }
+}
+</script>
+{% endblock %}

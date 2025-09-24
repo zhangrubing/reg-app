@@ -235,7 +235,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // 加载统计数据
 async function loadStatistics() {
     try {
-        const response = await API.get('/activations/statistics');
+        const response = await API.get('/admin/activations/statistics');
         const stats = response.data;
         
         document.getElementById('totalActivations').textContent = stats.total_activations || 0;
@@ -262,7 +262,7 @@ async function loadActivations() {
             channel_id: channelId
         };
         
-        const response = await API.get('/activations', { params });
+        const response = await API.get('/admin/activations', { params });
         const data = response.data;
         
         activations = data.items || [];
@@ -435,7 +435,7 @@ function changePage(page) {
 // 查看激活记录详情
 async function viewActivation(id) {
     try {
-        const response = await API.get(`/activations/${id}`);
+        const response = await API.get(`/admin/activations/${id}`);
         const activation = response.data;
         
         // 这里可以显示详情模态框
@@ -451,7 +451,7 @@ async function invalidateCode(id) {
     if (!confirm('确定要作废此激活码吗？')) return;
     
     try {
-        await API.post(`/activations/${id}/invalidate`);
+        await API.post(`/admin/activations/${id}/invalidate`);
         Utils.showSuccess('激活码已作废');
         loadActivations();
         loadStatistics();
@@ -481,7 +481,7 @@ document.getElementById('generateForm').addEventListener('submit', async functio
     const expiryDays = document.getElementById('generateExpiry').value;
     
     try {
-        await API.post('/activations/generate', {
+        await API.post('/admin/activations/generate', {
             count: parseInt(count),
             channel_id: channelId || null,
             expiry_days: parseInt(expiryDays)
@@ -511,7 +511,7 @@ async function exportCodes() {
             export: true
         };
         
-        const response = await API.get('/activations', { 
+        const response = await API.get('/admin/activations', { 
             params: params,
             responseType: 'blob'
         });
