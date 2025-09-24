@@ -1,5 +1,6 @@
 from fastapi.templating import Jinja2Templates
 from fastapi import Request
+from datetime import datetime
 
 try:
     from .config import BASE_DIR, APP_ENV, APP_NAME
@@ -17,7 +18,8 @@ def render(request: Request, name: str, **ctx):
         "request": request, 
         "user": getattr(request.state, 'user', None), 
         "env": APP_ENV,
-        "app_name": APP_NAME
+        "app_name": APP_NAME,
+        "current_year": datetime.now().year
     }
     base.update(ctx)
     return templates.TemplateResponse(name, base)

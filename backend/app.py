@@ -5,7 +5,7 @@ import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 # 导入配置和模块
@@ -19,11 +19,22 @@ from .routers import devices as r_devices
 from .routers import activation as r_activation
 from .routers import users as r_users
 from .routers import audit as r_audit
+from .web import render
 # 直接在主应用中定义admin路由，避免导入问题
 from fastapi import APIRouter
 
 # 创建管理后台路由
 admin_router = APIRouter(prefix="/admin", tags=["管理后台"])
+
+
+def _wants_html(request: Request) -> bool:
+    """Return True when the client expects an HTML document."""
+    dest = request.headers.get("sec-fetch-dest")
+    if dest:
+        return dest in ("document", "iframe")
+    accept = (request.headers.get("accept") or "").lower()
+    return "text/html" in accept and "application/json" not in accept
+
 
 # 完整的admin端点实现
 @admin_router.get("/dashboard/statistics")
@@ -52,8 +63,10 @@ async def admin_activation_statistics():
     }
 
 @admin_router.get("/activations")
-async def admin_activations_list():
+async def admin_activations_list(request: Request):
     """激活记录列表"""
+    if _wants_html(request):
+        return render(request, "activations.html", page_title="激活记录", page_description="掌握激活码使用情况与渠道投放表现")
     return {
         "items": [],
         "total": 0,
@@ -74,8 +87,10 @@ async def admin_license_statistics():
     }
 
 @admin_router.get("/licenses")
-async def admin_licenses_list():
+async def admin_licenses_list(request: Request):
     """许可证列表"""
+    if _wants_html(request):
+        return render(request, "licenses.html", page_title="许可证管理", page_description="生成许可证文件并监控有效期状态")
     return {
         "items": [],
         "total": 0,
@@ -97,8 +112,10 @@ async def admin_user_statistics():
     }
 
 @admin_router.get("/users")
-async def admin_users_list():
+async def admin_users_list(request: Request):
     """用户列表"""
+    if _wants_html(request):
+        return render(request, "users.html", page_title="用户管理", page_description="维护管理员账号、权限与安全策略")
     return {
         "items": [
             {
@@ -151,8 +168,10 @@ async def admin_audit_statistics():
     }
 
 @admin_router.get("/audit")
-async def admin_audit_list():
+async def admin_audit_list(request: Request):
     """审计日志列表"""
+    if _wants_html(request):
+        return render(request, "audit.html", page_title="审计日志", page_description="追踪系统行为与合规留痕")
     return {
         "items": [],
         "total": 0,

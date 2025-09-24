@@ -22,7 +22,7 @@ class ActivationCreateForm(BaseModel):
 @router.get("/activations", response_class=HTMLResponse)
 async def activations_page(request: Request, user: dict = Depends(require_user)):
     """激活记录页面"""
-    return render(request, "activations.html")
+    return render(request, "activations.html", page_title="激活记录", page_description="掌握激活码使用情况与渠道投放表现")
 
 
 @router.get("/api/activations")

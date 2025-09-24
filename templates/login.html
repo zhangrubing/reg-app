@@ -1,54 +1,121 @@
-{% extends "base.html" %}
-
-{% block content %}
-<div class="login-wrap">
-  <h2 class="text-center mb-4">登录系统</h2>
-  <form id="loginForm">
-    <div class="mb-3">
-      <label class="form-label">用户名</label>
-      <input type="text" class="input" id="username" name="username" required>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>!function(){try{const t=localStorage.getItem("theme");if(t){document.documentElement.setAttribute("data-theme",t);}else{const prefersLight=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-theme",prefersLight?"light":"dark");}}catch(e){}}();</script>
+  <link rel="stylesheet" href="{{ url_for('static', path='assets/style.css?v=2') }}">
+  <title>{{ app_name }} · 登录</title>
+</head>
+<body class="login-body">
+  <div class="login-hero">
+    <div class="login-card" role="region" aria-labelledby="login-title">
+      <div class="login-brand">
+        <div class="login-logo">🔐</div>
+        <div>
+          <div class="login-brand-name">{{ app_name }}</div>
+          <div class="login-brand-desc">软件注册 · 激活合规 · 渠道精细化运营</div>
+        </div>
+      </div>
+      <h1 id="login-title">管理员登录</h1>
+      <p class="login-subtitle">使用您的管理员账号进入控制台。默认账号：admin / admin123。</p>
+      <form id="login-form" class="login-form">
+        <label class="field-label" for="username">用户名</label>
+        <input id="username" name="username" type="text" class="input" placeholder="输入用户名" autocomplete="username" required>
+        <label class="field-label" for="password">密码</label>
+        <input id="password" name="password" type="password" class="input" placeholder="输入密码" autocomplete="current-password" required>
+        <div class="login-meta">
+          <label class="checkbox">
+            <input type="checkbox" id="remember-theme" checked>
+            <span>跟随系统主题</span>
+          </label>
+          <a class="link-muted" href="mailto:support@example.com">忘记密码？</a>
+        </div>
+        <button type="submit" class="btn w-full" id="login-submit">立即登录</button>
+        <div class="login-error" id="login-error" role="alert" hidden></div>
+      </form>
+      <footer class="login-footer">
+        <span>© {{ current_year }} {{ app_name }} · 安全激活与审计平台</span>
+      </footer>
     </div>
-    <div class="mb-3">
-      <label class="form-label">密码</label>
-      <input type="password" class="input" id="password" name="password" required>
-    </div>
-    <div id="error" class="text-danger small mb-3" style="display:none;"></div>
-    <button type="submit" class="btn w-full">登录</button>
-  </form>
-  <div class="text-center mt-3 small text-muted">
-    默认用户名：admin，密码：admin123
   </div>
-</div>
-
 <script type="module">
 import { apiPost } from "{{ url_for('static', path='assets/common.js') }}";
 
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const errorEl = document.getElementById('error');
-  errorEl.style.display = 'none';
-  
-  const username = document.getElementById('username').value.trim();
-  const password = document.getElementById('password').value.trim();
-  
-  if (!username || !password) {
-    errorEl.textContent = '请输入用户名和密码';
-    errorEl.style.display = 'block';
+const form = document.querySelector('#login-form');
+const btn = document.querySelector('#login-submit');
+const errorEl = document.querySelector('#login-error');
+const usernameInput = document.querySelector('#username');
+const passwordInput = document.querySelector('#password');
+const rememberTheme = document.querySelector('#remember-theme');
+const systemTheme = window.matchMedia('(prefers-color-scheme: light)');
+
+usernameInput.focus();
+
+function setLoading(state) {
+  btn.disabled = state;
+  btn.classList.toggle('btn-loading', state);
+  btn.textContent = state ? '正在登录…' : '立即登录';
+}
+
+function setTheme(value) {
+  document.documentElement.setAttribute('data-theme', value);
+}
+
+function applySystemTheme() {
+  setTheme(systemTheme.matches ? 'light' : 'dark');
+}
+
+function showError(message) {
+  if (!message) {
+    errorEl.hidden = true;
     return;
   }
-  
+  errorEl.textContent = message;
+  errorEl.hidden = false;
+}
+
+rememberTheme.addEventListener('change', () => {
   try {
-    const res = await apiPost('/api/login', { username, password });
-    if (res.ok) {
-      window.location.href = '/dashboard';
+    if (rememberTheme.checked) {
+      localStorage.removeItem('theme');
+      applySystemTheme();
     } else {
-      errorEl.textContent = res.detail || '登录失败';
-      errorEl.style.display = 'block';
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      localStorage.setItem('theme', current);
     }
+  } catch (_) {}
+});
+
+systemTheme.addEventListener?.('change', (event) => {
+  if (rememberTheme.checked) {
+    setTheme(event.matches ? 'light' : 'dark');
+  }
+});
+
+if (rememberTheme.checked) {
+  applySystemTheme();
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  showError('');
+  setLoading(true);
+  try {
+    await apiPost('/api/login', {
+      username: usernameInput.value.trim(),
+      password: passwordInput.value.trim()
+    });
+    window.location.href = '/dashboard';
   } catch (err) {
-    errorEl.textContent = '网络错误，请重试';
-    errorEl.style.display = 'block';
+    const detail = err?.data?.detail || err?.message || '未知错误，请稍后重试';
+    showError(`登录失败：${detail}`);
+    passwordInput.focus();
+    passwordInput.select();
+  } finally {
+    setLoading(false);
   }
 });
 </script>
-{% endblock %}
+</body>
+</html>

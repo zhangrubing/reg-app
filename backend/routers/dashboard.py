@@ -19,7 +19,13 @@ router = APIRouter()
 @router.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     """首页"""
-    return render(request, "index.html")
+    return render(request, "index.html", page_title="欢迎", page_description="查看系统运行概览与快速导航")
+
+@router.get("/about", response_class=HTMLResponse)
+async def about(request: Request):
+    """关于页面"""
+    return render(request, "about.html", page_title="关于系统", page_description="平台架构、能力与合规说明")
+
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
@@ -78,7 +84,7 @@ async def dashboard(request: Request, user: dict = Depends(require_user)):
             for row in recent_activations
         ]
     
-    return render(request, "dashboard.html", stats=stats)
+    return render(request, "dashboard.html", stats=stats, page_title="仪表盘", page_description="核心指标实时洞察与最新激活动态")
 
 
 @router.get("/api/dashboard/stats")

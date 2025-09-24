@@ -18,7 +18,7 @@ class DeviceUpdateForm(BaseModel):
 @router.get("/devices", response_class=HTMLResponse)
 async def devices_page(request: Request, user: dict = Depends(require_user)):
     """设备管理页面"""
-    return render(request, "devices.html")
+    return render(request, "devices.html", page_title="设备管理", page_description="追踪设备激活状态、渠道归属与生命周期")
 
 
 @router.get("/api/devices")

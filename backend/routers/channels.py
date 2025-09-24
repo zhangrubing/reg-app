@@ -21,7 +21,7 @@ class ChannelForm(BaseModel):
 @router.get("/channels", response_class=HTMLResponse)
 async def channels_page(request: Request, user: dict = Depends(require_user)):
     """渠道管理页面"""
-    return render(request, "channels.html")
+    return render(request, "channels.html", page_title="渠道管理", page_description="配置渠道信息、API 密钥与停用策略")
 
 
 @router.get("/api/channels")

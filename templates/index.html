@@ -1,37 +1,31 @@
 {% extends "base.html" %}
 
-{% set page_title = "首页" %}
-
 {% block content %}
-<div class="text-center" style="margin-top: 20vh;">
-  <h1 class="text-4xl font-bold mb-4">软件注册与激活系统</h1>
-  <p class="text-xl text-muted mb-8">专业的软件授权管理解决方案</p>
-  
-  <div class="grid cols-3 max-w-4xl mx-auto">
-    <div class="card">
-      <div class="text-3xl mb-2">🔐</div>
-      <h3 class="font-bold mb-2">安全认证</h3>
-      <p class="text-muted">基于JWT和HMAC的多重安全认证机制</p>
-    </div>
-    <div class="card">
-      <div class="text-3xl mb-2">📊</div>
-      <h3 class="font-bold mb-2">实时监控</h3>
-      <p class="text-muted">实时跟踪设备激活状态和授权使用情况</p>
-    </div>
-    <div class="card">
-      <div class="text-3xl mb-2">🌐</div>
-      <h3 class="font-bold mb-2">渠道管理</h3>
-      <p class="text-muted">灵活的渠道授权和分销管理功能</p>
+<section class="landing">
+  <div class="landing-lead">
+    <h1>软件注册与激活系统</h1>
+    <p>面向渠道分发和终端设备的数字授权平台，提供全流程激活、许可证签发与合规审计能力。</p>
+    <div class="landing-actions">
+      <a class="btn" href="/dashboard">立即进入控制台</a>
+      <a class="btn secondary" href="/about">了解平台能力</a>
     </div>
   </div>
-  
-  <div class="mt-8">
-    <a href="/dashboard" class="btn">
-      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-      </svg>
-      进入系统
-    </a>
+  <div class="landing-grid">
+    <article class="landing-card">
+      <div class="landing-icon">🔐</div>
+      <h3>多重安全</h3>
+      <p>支持 TOTP / HMAC / 设备指纹校验，保障激活凭证不可伪造。</p>
+    </article>
+    <article class="landing-card">
+      <div class="landing-icon">📊</div>
+      <h3>实时洞察</h3>
+      <p>仪表盘监控激活指标、设备画像与渠道投放效果，随时掌握运营态势。</p>
+    </article>
+    <article class="landing-card">
+      <div class="landing-icon">🌐</div>
+      <h3>渠道协同</h3>
+      <p>灵活配置渠道额度、API 密钥与审批流程，支撑多层级分发网络。</p>
+    </article>
   </div>
-</div>
+</section>
 {% endblock %}

@@ -30,7 +30,7 @@ class LoginForm(BaseModel):
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """登录页面"""
-    return render(request, "login.html")
+    return render(request, "login.html", page_title="登录", page_description="进入软件注册与激活管理平台")
 
 
 @router.post("/api/login")
