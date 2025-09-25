@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel
 import aiosqlite
 from datetime import datetime
@@ -193,3 +193,28 @@ async def api_get_activation_stats(user: dict = Depends(require_user)):
         stats["today_activated"] = row[0] if row else 0
     
     return JSONResponse({"ok": True, "data": stats})
+
+@router.get("/api/activations/export")
+async def api_export_activations(user: dict = Depends(require_admin)):
+    """Export activation log CSV"""
+    async with aiosqlite.connect(DB_PATH) as db:
+        rows = await (await db.execute("""
+            SELECT a.activation_code, a.sn, a.status, a.expires_at, a.max_uses, a.used_count, a.created_at, a.activated_at,
+                   c.channel_code, c.name
+            FROM activations a
+            JOIN channels c ON a.channel_id = c.id
+            ORDER BY a.created_at DESC
+        """)).fetchall()
+
+    headers = ["activation_code", "sn", "status", "expires_at", "max_uses", "used_count", "created_at", "activated_at", "channel_code", "channel_name"]
+    lines = [",".join(headers)]
+    for row in rows:
+        lines.append(",".join(str(col or '') for col in row))
+
+    csv_bytes = "\n".join(lines).encode('utf-8-sig')
+    filename = f"activations-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([csv_bytes]),
+        media_type='text/csv',
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )

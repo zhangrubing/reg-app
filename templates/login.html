@@ -4,11 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script>!function(){try{const t=localStorage.getItem("theme");if(t){document.documentElement.setAttribute("data-theme",t);}else{const prefersLight=window.matchMedia&&window.matchMedia("(prefers-color-scheme: light)").matches;document.documentElement.setAttribute("data-theme",prefersLight?"light":"dark");}}catch(e){}}();</script>
-  <link rel="stylesheet" href="{{ url_for('static', path='assets/style.css?v=2') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='assets/style.css?v=3') }}">
   <title>{{ app_name }} · 登录</title>
 </head>
 <body class="login-body">
   <div class="login-hero">
+    <div class="login-aside">
+      <h2>欢迎使用 {{ app_name }}</h2>
+      <p>统一管控注册码、许可证与渠道，让交付与审计全链路透明。</p>
+      <ul class="login-feature-list">
+        <li>
+          <span>激活全生命周期追踪</span>
+          <small>渠道生成、激活、吊销一目了然，杜绝重复授权</small>
+        </li>
+        <li>
+          <span>专业的合规报表</span>
+          <small>一键导出渠道、激活、许可证数据，满足稽核与稽查</small>
+        </li>
+        <li>
+          <span>安全的后台管理</span>
+          <small>多管理员协作与操作审计，敏感操作及时留痕</small>
+        </li>
+      </ul>
+    </div>
     <div class="login-card" role="region" aria-labelledby="login-title">
       <div class="login-brand">
         <div class="login-logo">🔐</div>

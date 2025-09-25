@@ -1,541 +1,363 @@
 {% extends "base.html" %}
 
-{% block title %}用户管理 - 软件注册系统{% endblock %}
-
 {% block content %}
-<div class="p-6">
-    <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h1>
-        <p class="text-gray-600 dark:text-gray-400">管理系统中的所有用户账户</p>
+<section class="page-section">
+  <div class="page-toolbar">
+    <div>
+      <h2>用户管理</h2>
+      <p class="toolbar-subtitle">维护平台管理员账户、权限与状态</p>
     </div>
-
-    <!-- 统计卡片 -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">总用户数</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalUsers">0</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
-                    <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">管理员数</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="adminCount">0</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="p-2 bg-yellow-100 dark:bg-yellow-900 rounded-lg">
-                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">活跃用户</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="activeUsers">0</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-            <div class="flex items-center">
-                <div class="p-2 bg-purple-100 dark:bg-purple-900 rounded-lg">
-                    <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600 dark:text-gray-400">今日登录</p>
-                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="todayLogin">0</p>
-                </div>
-            </div>
-        </div>
+    <div class="toolbar-actions">
+      <input id="user-search" class="input input-sm" placeholder="搜索用户名">
+      <select id="user-status" class="input input-sm">
+        <option value="">全部状态</option>
+        <option value="active">启用</option>
+        <option value="inactive">禁用</option>
+      </select>
+      <select id="user-role" class="input input-sm">
+        <option value="">全部角色</option>
+        <option value="1">管理员</option>
+        <option value="0">普通用户</option>
+      </select>
+      <button class="btn" id="user-create">新建用户</button>
     </div>
+  </div>
 
-    <!-- 操作栏 -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 p-4">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div class="flex flex-col sm:flex-row gap-4 flex-1">
-                <div class="relative flex-1 max-w-xs">
-                    <input type="text" id="searchInput" placeholder="搜索用户名..." 
-                           class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                    <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                </div>
-                <select id="statusFilter" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                    <option value="">全部状态</option>
-                    <option value="active">活跃</option>
-                    <option value="inactive">禁用</option>
-                </select>
-                <select id="roleFilter" class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                    <option value="">全部角色</option>
-                    <option value="true">管理员</option>
-                    <option value="false">普通用户</option>
-                </select>
-            </div>
-            <button onclick="showCreateModal()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                创建用户
-            </button>
-        </div>
+  <div class="grid cols-4" id="user-stat-cards">
+    <div class="kpi">
+      <div class="kpi-label">总用户数</div>
+      <div class="kpi-value" id="stat-total">0</div>
+      <div class="kpi-pill">活跃 <span class="ok" id="stat-active">0</span></div>
     </div>
-
-    <!-- 用户表格 -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">用户名</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">角色</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">状态</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">创建时间</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">最后登录</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">操作</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                    <!-- 数据将通过JavaScript动态加载 -->
-                </tbody>
-            </table>
-        </div>
-        
-        <!-- 分页 -->
-        <div class="bg-gray-50 dark:bg-gray-700 px-6 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
-            <div class="flex-1 flex justify-between sm:hidden">
-                <button onclick="changePage(currentPage - 1)" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    上一页
-                </button>
-                <button onclick="changePage(currentPage + 1)" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
-                    下一页
-                </button>
-            </div>
-            <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
-                    <p class="text-sm text-gray-700 dark:text-gray-300">
-                        显示第 <span id="startRecord">1</span> 到 <span id="endRecord">10</span> 条，共 <span id="totalRecords">0</span> 条记录
-                    </p>
-                </div>
-                <div>
-                    <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                        <button onclick="changePage(currentPage - 1)" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <span class="sr-only">上一页</span>
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <div id="paginationNumbers" class="flex">
-                            <!-- 分页数字将通过JavaScript动态生成 -->
-                        </div>
-                        <button onclick="changePage(currentPage + 1)" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
-                            <span class="sr-only">下一页</span>
-                            <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                    </nav>
-                </div>
-            </div>
-        </div>
+    <div class="kpi">
+      <div class="kpi-label">管理员账户</div>
+      <div class="kpi-value" id="stat-admin">0</div>
+      <div class="kpi-pill">普通用户 <span class="warn" id="stat-regular">0</span></div>
     </div>
-</div>
-
-<!-- 创建/编辑用户模态框 -->
-<div id="userModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50">
-    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white dark:bg-gray-800">
-        <div class="mt-3">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4" id="modalTitle">创建用户</h3>
-            <form id="userForm" class="space-y-4">
-                <input type="hidden" id="userId">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">用户名</label>
-                    <input type="text" id="username" required 
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                </div>
-                <div id="passwordDiv">
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">密码</label>
-                    <input type="password" id="password" 
-                           class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">留空则不修改密码</p>
-                </div>
-                <div>
-                    <label class="flex items-center">
-                        <input type="checkbox" id="isAdmin" 
-                               class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">管理员权限</span>
-                    </label>
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">状态</label>
-                    <select id="userStatus" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-                        <option value="active">活跃</option>
-                        <option value="inactive">禁用</option>
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="closeUserModal()" 
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
-                        取消
-                    </button>
-                    <button type="submit" 
-                            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        保存
-                    </button>
-                </div>
-            </form>
-        </div>
+    <div class="kpi">
+      <div class="kpi-label">启用状态</div>
+      <div class="kpi-value" id="stat-enabled">0</div>
+      <div class="kpi-pill">禁用 <span class="danger" id="stat-disabled">0</span></div>
     </div>
-</div>
-{% endblock %}
+    <div class="kpi">
+      <div class="kpi-label">今日登录</div>
+      <div class="kpi-value" id="stat-today">0</div>
+      <div class="kpi-pill">请关注异常登录</div>
+    </div>
+  </div>
 
-{% block scripts %}
-<script>
-let currentPage = 1;
-let pageSize = 20;
-let totalPages = 1;
-let users = [];
-let isEditMode = false;
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table" id="user-table">
+        <thead>
+          <tr>
+            <th>用户名</th>
+            <th>角色</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th>最后登录</th>
+            <th class="text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody id="user-tbody">
+          <tr><td colspan="6" class="text-center text-muted">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
 
-// 页面加载时初始化
-document.addEventListener('DOMContentLoaded', function() {
-    loadStatistics();
-    loadUsers();
-    
-    // 搜索功能
-    document.getElementById('searchInput').addEventListener('input', debounce(function() {
-        currentPage = 1;
-        loadUsers();
-    }, 300));
-    
-    // 状态筛选
-    document.getElementById('statusFilter').addEventListener('change', function() {
-        currentPage = 1;
-        loadUsers();
-    });
-    
-    // 角色筛选
-    document.getElementById('roleFilter').addEventListener('change', function() {
-        currentPage = 1;
-        loadUsers();
-    });
-    
-    // 表单提交
-    document.getElementById('userForm').addEventListener('submit', handleSubmit);
+<dialog id="user-modal" class="modal">
+  <form method="dialog" class="modal-content" id="user-form">
+    <header class="modal-header">
+      <h3 id="user-modal-title">新建用户</h3>
+      <button type="button" class="modal-close" data-action="close">×</button>
+    </header>
+    <div class="modal-body">
+      <label class="form-field">
+        <span>用户名</span>
+        <input type="text" id="user-username" maxlength="50" required>
+      </label>
+      <label class="form-field">
+        <span>密码</span>
+        <input type="password" id="user-password" maxlength="100" placeholder="至少 6 位字符" required>
+        <span class="small text-muted" id="user-password-hint">创建用户时必填，编辑时留空表示不修改</span>
+      </label>
+      <label class="form-field">
+        <span>角色</span>
+        <select id="user-role-flag">
+          <option value="true">管理员</option>
+          <option value="false">普通用户</option>
+        </select>
+      </label>
+      <label class="form-field">
+        <span>状态</span>
+        <select id="user-status-flag">
+          <option value="active">启用</option>
+          <option value="inactive">禁用</option>
+        </select>
+      </label>
+    </div>
+    <footer class="modal-footer">
+      <button type="button" class="btn secondary" data-action="close">取消</button>
+      <button type="submit" class="btn" id="user-submit">保存</button>
+    </footer>
+  </form>
+</dialog>
+
+<script type="module">
+import { apiGet, apiPost, apiPut, apiDelete, showNotification, formatDate } from "{{ url_for('static', path='assets/common.js') }}";
+
+const state = {
+  users: [],
+  editingId: null,
+  filters: {
+    search: '',
+    status: '',
+    role: ''
+  }
+};
+
+const tableBody = document.getElementById('user-tbody');
+const searchInput = document.getElementById('user-search');
+const statusSelect = document.getElementById('user-status');
+const roleSelect = document.getElementById('user-role');
+const createBtn = document.getElementById('user-create');
+
+const modal = document.getElementById('user-modal');
+const form = document.getElementById('user-form');
+const modalTitle = document.getElementById('user-modal-title');
+const usernameInput = document.getElementById('user-username');
+const passwordInput = document.getElementById('user-password');
+const passwordHint = document.getElementById('user-password-hint');
+const roleFlag = document.getElementById('user-role-flag');
+const statusFlag = document.getElementById('user-status-flag');
+const submitBtn = document.getElementById('user-submit');
+
+const statTotal = document.getElementById('stat-total');
+const statAdmin = document.getElementById('stat-admin');
+const statRegular = document.getElementById('stat-regular');
+const statEnabled = document.getElementById('stat-enabled');
+const statDisabled = document.getElementById('stat-disabled');
+const statActive = document.getElementById('stat-active');
+const statToday = document.getElementById('stat-today');
+
+function toggleDialog(dialog, open) {
+  if (!dialog) return;
+  open ? dialog.showModal() : dialog.close();
+}
+
+function resetForm() {
+  form.reset();
+  passwordInput.required = true;
+  passwordHint.textContent = '创建用户时必填，编辑时留空表示不修改';
+  submitBtn.textContent = '保存';
+}
+
+modal.addEventListener('click', (event) => {
+  if (event.target.dataset.action === 'close' || event.target === modal) {
+    toggleDialog(modal, false);
+  }
 });
 
-// 加载统计数据
-async function loadStatistics() {
-    try {
-        const response = await API.get('/users/statistics');
-        const stats = response.data;
-        
-        document.getElementById('totalUsers').textContent = stats.total_users || 0;
-        document.getElementById('adminCount').textContent = stats.admin_count || 0;
-        document.getElementById('activeUsers').textContent = stats.active_users || 0;
-        document.getElementById('todayLogin').textContent = stats.today_login || 0;
-    } catch (error) {
-        console.error('加载统计数据失败:', error);
-    }
+modal.addEventListener('close', () => {
+  state.editingId = null;
+  resetForm();
+});
+
+createBtn.addEventListener('click', () => {
+  state.editingId = null;
+  modalTitle.textContent = '新建用户';
+  resetForm();
+  toggleDialog(modal, true);
+  usernameInput.focus();
+});
+
+function renderStats(stats) {
+  statTotal.textContent = stats.total_users ?? 0;
+  statAdmin.textContent = stats.admin_count ?? 0;
+  statActive.textContent = stats.active_users ?? 0;
+  statEnabled.textContent = stats.active_users ?? 0;
+  statDisabled.textContent = (stats.total_users ?? 0) - (stats.active_users ?? 0);
+  statRegular.textContent = (stats.total_users ?? 0) - (stats.admin_count ?? 0);
+  statToday.textContent = stats.today_login ?? 0;
 }
 
-// 加载用户列表
+function renderTable() {
+  if (!state.users.length) {
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无用户数据</td></tr>';
+    return;
+  }
+
+  tableBody.innerHTML = state.users.map((user) => {
+    const roleBadge = user.is_admin
+      ? '<span class="badge lv-info">管理员</span>'
+      : '<span class="badge">普通用户</span>';
+    const statusBadge = user.status === 'active'
+      ? '<span class="badge lv-info">启用</span>'
+      : '<span class="badge lv-warn">禁用</span>';
+    const toggleStatusLabel = user.status === 'active' ? '禁用' : '启用';
+    const toggleRoleLabel = user.is_admin ? '降为普通' : '设为管理员';
+
+    return `
+      <tr data-id="${user.id}">
+        <td>${user.username}</td>
+        <td>${roleBadge}</td>
+        <td>${statusBadge}</td>
+        <td>${user.created_at ? formatDate(user.created_at) : '-'}</td>
+        <td>${user.last_login ? formatDate(user.last_login) : '-'}</td>
+        <td class="text-right">
+          <button class="btn secondary btn-xs" data-action="edit">编辑</button>
+          <button class="btn btn-xs" data-action="toggle-admin">${toggleRoleLabel}</button>
+          <button class="btn btn-xs" data-action="toggle-status">${toggleStatusLabel}</button>
+          <button class="btn danger btn-xs" data-action="delete">删除</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function loadStats() {
+  try {
+    const res = await apiGet('/users/statistics');
+    renderStats(res);
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+}
+
 async function loadUsers() {
-    try {
-        const search = document.getElementById('searchInput').value;
-        const status = document.getElementById('statusFilter').value;
-        const role = document.getElementById('roleFilter').value;
-        
-        const params = {
-            page: currentPage,
-            page_size: pageSize,
-            search: search,
-            status: status
-        };
-        
-        if (role !== '') {
-            params.is_admin = role === 'true';
-        }
-        
-        const response = await API.get('/users', { params });
-        const data = response.data;
-        
-        users = data.items || [];
-        totalPages = data.pages || 1;
-        
-        renderUsersTable();
-        renderPagination();
-        updatePaginationInfo(data.total || 0);
-    } catch (error) {
-        console.error('加载用户列表失败:', error);
-        Utils.showError('加载用户列表失败');
-    }
+  try {
+    const params = {
+      page: 1,
+      page_size: 100
+    };
+    if (state.filters.search) params.search = state.filters.search;
+    if (state.filters.status) params.status = state.filters.status;
+    if (state.filters.role) params.is_admin = state.filters.role === '1';
+
+    const res = await apiGet('/users', params);
+    state.users = res.items || [];
+    renderTable();
+  } catch (error) {
+    state.users = [];
+    renderTable();
+    showNotification(error.message, 'error');
+  }
 }
 
-// 渲染用户表格
-function renderUsersTable() {
-    const tbody = document.getElementById('usersTableBody');
-    tbody.innerHTML = '';
-    
-    if (users.length === 0) {
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="6" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                    </svg>
-                    <p class="mt-2 text-sm">暂无用户</p>
-                </td>
-            </tr>
-        `;
+searchInput.addEventListener('input', (event) => {
+  state.filters.search = event.target.value.trim();
+  loadUsers();
+});
+
+statusSelect.addEventListener('change', (event) => {
+  state.filters.status = event.target.value;
+  loadUsers();
+});
+
+roleSelect.addEventListener('change', (event) => {
+  state.filters.role = event.target.value;
+  loadUsers();
+});
+
+function fillForm(user) {
+  usernameInput.value = user.username;
+  roleFlag.value = String(user.is_admin);
+  statusFlag.value = user.status;
+  passwordInput.value = '';
+  passwordInput.required = false;
+  passwordHint.textContent = '留空表示保持原密码';
+  submitBtn.textContent = '更新';
+}
+
+tableBody.addEventListener('click', async (event) => {
+  const action = event.target.dataset.action;
+  if (!action) return;
+  const row = event.target.closest('tr');
+  const id = Number(row?.dataset.id);
+  if (!id) return;
+  const user = state.users.find((item) => item.id === id);
+  if (!user) return;
+
+  if (action === 'edit') {
+    state.editingId = id;
+    modalTitle.textContent = '编辑用户';
+    fillForm(user);
+    toggleDialog(modal, true);
+    usernameInput.focus();
+    return;
+  }
+
+  if (action === 'toggle-status') {
+    try {
+      await apiPost(`/users/${id}/toggle-status`);
+      showNotification('状态更新成功', 'success');
+      await Promise.all([loadUsers(), loadStats()]);
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+    return;
+  }
+
+  if (action === 'toggle-admin') {
+    try {
+      await apiPost(`/users/${id}/toggle-admin`);
+      showNotification('角色更新成功', 'success');
+      await Promise.all([loadUsers(), loadStats()]);
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+    return;
+  }
+
+  if (action === 'delete') {
+    if (!confirm(`确认删除用户 ${user.username} 吗？`)) return;
+    try {
+      await apiDelete(`/users/${id}`);
+      showNotification('用户删除成功', 'success');
+      await Promise.all([loadUsers(), loadStats()]);
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+  }
+});
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const payload = {
+    username: usernameInput.value.trim(),
+    is_admin: roleFlag.value === 'true',
+    status: statusFlag.value
+  };
+  const password = passwordInput.value.trim();
+  if (!state.editingId && password.length < 6) {
+    showNotification('密码至少需要 6 位字符', 'warning');
+    return;
+  }
+  if (password) {
+    payload.password = password;
+  }
+
+  try {
+    if (state.editingId) {
+      await apiPut(`/users/${state.editingId}`, payload);
+      showNotification('用户更新成功', 'success');
+    } else {
+      if (!payload.password) {
+        showNotification('请设置初始密码', 'warning');
         return;
+      }
+      await apiPost('/users', payload);
+      showNotification('用户创建成功', 'success');
     }
-    
-    users.forEach(user => {
-        const row = document.createElement('tr');
-        row.className = 'hover:bg-gray-50 dark:hover:bg-gray-700';
-        
-        const statusClass = user.status === 'active' 
-            ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' 
-            : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100';
-        const statusText = user.status === 'active' ? '活跃' : '禁用';
-        const roleText = user.is_admin ? '管理员' : '普通用户';
-        const roleClass = user.is_admin 
-            ? 'bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-100' 
-            : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
-        
-        row.innerHTML = `
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                ${user.username}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleClass}">
-                    ${roleText}
-                </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
-                    ${statusText}
-                </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                ${formatDateTime(user.created_at)}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                ${user.last_login ? formatDateTime(user.last_login) : '-'}
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div class="flex space-x-2">
-                    <button onclick="editUser(${user.id})" 
-                            class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300">
-                        编辑
-                    </button>
-                    <button onclick="toggleUserStatus(${user.id})" 
-                            class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300">
-                        ${user.status === 'active' ? '禁用' : '启用'}
-                    </button>
-                    ${!user.is_admin ? `
-                        <button onclick="toggleUserAdmin(${user.id})" 
-                                class="text-purple-600 hover:text-purple-900 dark:text-purple-400 dark:hover:text-purple-300">
-                            设为管理员
-                        </button>
-                    ` : ''}
-                    <button onclick="deleteUser(${user.id})" 
-                            class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                        删除
-                    </button>
-                </div>
-            </td>
-        `;
-        
-        tbody.appendChild(row);
-    });
-}
+    toggleDialog(modal, false);
+    await Promise.all([loadUsers(), loadStats()]);
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+});
 
-// 渲染分页
-function renderPagination() {
-    const paginationNumbers = document.getElementById('paginationNumbers');
-    paginationNumbers.innerHTML = '';
-    
-    const maxButtons = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-    let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-    
-    if (endPage - startPage < maxButtons - 1) {
-        startPage = Math.max(1, endPage - maxButtons + 1);
-    }
-    
-    for (let i = startPage; i <= endPage; i++) {
-        const button = document.createElement('button');
-        button.onclick = () => changePage(i);
-        button.className = `relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-            i === currentPage 
-                ? 'z-10 bg-blue-50 border-blue-500 text-blue-600 dark:bg-blue-900 dark:border-blue-500 dark:text-blue-300' 
-                : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-600 dark:text-gray-400 dark:hover:bg-gray-700'
-        }`;
-        button.textContent = i;
-        paginationNumbers.appendChild(button);
-    }
-}
-
-// 更新分页信息
-function updatePaginationInfo(total) {
-    const startRecord = (currentPage - 1) * pageSize + 1;
-    const endRecord = Math.min(currentPage * pageSize, total);
-    
-    document.getElementById('startRecord').textContent = startRecord;
-    document.getElementById('endRecord').textContent = endRecord;
-    document.getElementById('totalRecords').textContent = total;
-}
-
-// 切换页面
-function changePage(page) {
-    if (page < 1 || page > totalPages) return;
-    currentPage = page;
-    loadUsers();
-}
-
-// 显示创建用户模态框
-function showCreateModal() {
-    isEditMode = false;
-    document.getElementById('modalTitle').textContent = '创建用户';
-    document.getElementById('userId').value = '';
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
-    document.getElementById('isAdmin').checked = false;
-    document.getElementById('userStatus').value = 'active';
-    document.getElementById('passwordDiv').style.display = 'block';
-    document.getElementById('userModal').classList.remove('hidden');
-}
-
-// 编辑用户
-function editUser(id) {
-    const user = users.find(u => u.id === id);
-    if (!user) return;
-    
-    isEditMode = true;
-    document.getElementById('modalTitle').textContent = '编辑用户';
-    document.getElementById('userId').value = user.id;
-    document.getElementById('username').value = user.username;
-    document.getElementById('password').value = '';
-    document.getElementById('isAdmin').checked = user.is_admin;
-    document.getElementById('userStatus').value = user.status;
-    document.getElementById('passwordDiv').style.display = 'block';
-    document.getElementById('userModal').classList.remove('hidden');
-}
-
-// 关闭用户模态框
-function closeUserModal() {
-    document.getElementById('userModal').classList.add('hidden');
-    document.getElementById('userForm').reset();
-}
-
-// 处理表单提交
-async function handleSubmit(e) {
-    e.preventDefault();
-    
-    const userId = document.getElementById('userId').value;
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const isAdmin = document.getElementById('isAdmin').checked;
-    const status = document.getElementById('userStatus').value;
-    
-    try {
-        if (isEditMode && userId) {
-            // 编辑用户
-            const updateData = {
-                username: username,
-                is_admin: isAdmin,
-                status: status
-            };
-            
-            if (password) {
-                updateData.password = password;
-            }
-            
-            await API.put(`/users/${userId}`, updateData);
-            Utils.showSuccess('用户更新成功');
-        } else {
-            // 创建用户
-            await API.post('/users', {
-                username: username,
-                password: password,
-                is_admin: isAdmin,
-                status: status
-            });
-            Utils.showSuccess('用户创建成功');
-        }
-        
-        closeUserModal();
-        loadUsers();
-        loadStatistics();
-    } catch (error) {
-        console.error('保存用户失败:', error);
-        Utils.showError('保存用户失败');
-    }
-}
-
-// 切换用户状态
-async function toggleUserStatus(id) {
-    try {
-        await API.post(`/users/${id}/toggle-status`);
-        Utils.showSuccess('用户状态已更新');
-        loadUsers();
-        loadStatistics();
-    } catch (error) {
-        console.error('切换用户状态失败:', error);
-        Utils.showError('切换用户状态失败');
-    }
-}
-
-// 切换用户管理员权限
-async function toggleUserAdmin(id) {
-    try {
-        await API.post(`/users/${id}/toggle-admin`);
-        Utils.showSuccess('用户权限已更新');
-        loadUsers();
-        loadStatistics();
-    } catch (error) {
-        console.error('切换用户权限失败:', error);
-        Utils.showError('切换用户权限失败');
-    }
-}
-
-// 删除用户
-async function deleteUser(id) {
-    if (!confirm('确定要删除此用户吗？此操作不可恢复。')) return;
-    
-    try {
-        await API.delete(`/users/${id}`);
-        Utils.showSuccess('用户删除成功');
-        loadUsers();
-        loadStatistics();
-    } catch (error) {
-        console.error('删除用户失败:', error);
-        Utils.showError('删除用户失败');
-    }
-}
-
-// 工具函数
-function formatDateTime(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleString('zh-CN');
-}
+Promise.all([loadUsers(), loadStats()]).catch((error) => showNotification(error.message, 'error'));
 </script>
 {% endblock %}

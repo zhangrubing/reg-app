@@ -1,159 +1,253 @@
 {% extends "base.html" %}
 
-{% set page_title = "渠道管理" %}
-
 {% block content %}
-<div class="card">
-  <div class="flex justify-between items-center mb-4">
-    <h3 class="section-title">
-      <svg class="ico" width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/>
-      </svg>
-      渠道列表
-    </h3>
-    <button class="btn" onclick="showAddModal()">
-      <svg class="ico" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-      </svg>
-      添加渠道
-    </button>
+<section class="page-section">
+  <div class="page-toolbar">
+    <div>
+      <h2>渠道列表</h2>
+      <p class="toolbar-subtitle">维护渠道编码、API 密钥与签名密钥</p>
+    </div>
+    <button class="btn" id="channel-create">新增渠道</button>
   </div>
-  
-  <div class="table-responsive">
-    <table class="table" id="channelsTable">
-      <thead>
-        <tr>
-          <th>渠道代码</th>
-          <th>名称</th>
-          <th>API密钥</th>
-          <th>状态</th>
-          <th>创建时间</th>
-          <th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="channelsTableBody">
-        <tr>
-          <td colspan="6" class="text-center text-muted">加载中...</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
 
-<!-- 添加/编辑模态框 -->
-<div id="channelModal" class="modal-backdrop" style="display:none;">
-  <div class="modal">
-    <div class="title" id="modalTitle">添加渠道</div>
-    <form id="channelForm">
-      <div class="row">
-        <label>渠道代码</label>
-        <input type="text" class="input" id="channel_code" name="channel_code" required>
-      </div>
-      <div class="row">
-        <label>名称</label>
-        <input type="text" class="input" id="name" name="name" required>
-      </div>
-      <div class="row">
-        <label>API密钥</label>
-        <input type="text" class="input" id="api_key" name="api_key" required>
-      </div>
-      <div class="row">
-        <label>HMAC密钥</label>
-        <input type="text" class="input" id="secret_hmac" name="secret_hmac" required>
-      </div>
-      <div class="actions">
-        <button type="button" class="btn secondary" onclick="hideModal()">取消</button>
-        <button type="submit" class="btn">保存</button>
-      </div>
-    </form>
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table" id="channel-table">
+        <thead>
+          <tr>
+            <th>渠道代码</th>
+            <th>名称</th>
+            <th>API Key</th>
+            <th>状态</th>
+            <th>创建时间</th>
+            <th class="text-right">操作</th>
+          </tr>
+        </thead>
+        <tbody id="channel-tbody">
+          <tr><td colspan="6" class="text-center text-muted">加载中...</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
+</section>
+
+<dialog id="channel-modal" class="modal">
+  <form method="dialog" class="modal-content" id="channel-form">
+    <header class="modal-header">
+      <h3 id="channel-modal-title">新增渠道</h3>
+      <button type="button" class="modal-close" data-action="close">×</button>
+    </header>
+    <div class="modal-body">
+      <input type="hidden" id="channel-id">
+      <label class="form-field">
+        <span>渠道代码</span>
+        <input type="text" id="channel-code" required maxlength="64">
+      </label>
+      <label class="form-field">
+        <span>渠道名称</span>
+        <input type="text" id="channel-name" required maxlength="128">
+      </label>
+      <label class="form-field">
+        <span>API Key</span>
+        <input type="text" id="channel-api" required maxlength="128">
+      </label>
+      <label class="form-field">
+        <span>HMAC 密钥</span>
+        <input type="text" id="channel-hmac" required maxlength="256">
+      </label>
+      <label class="form-field">
+        <span>状态</span>
+        <select id="channel-status">
+          <option value="active">活跃</option>
+          <option value="inactive">禁用</option>
+        </select>
+      </label>
+    </div>
+    <footer class="modal-footer">
+      <button type="button" class="btn secondary" data-action="close">取消</button>
+      <button type="submit" class="btn" id="channel-submit">保存</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog id="confirm-modal" class="modal">
+  <form method="dialog" class="modal-content confirm">
+    <header class="modal-header">
+      <h3>确认操作</h3>
+    </header>
+    <div class="modal-body" id="confirm-message"></div>
+    <footer class="modal-footer">
+      <button type="button" class="btn secondary" data-action="close">取消</button>
+      <button type="submit" class="btn danger" id="confirm-accept">确定</button>
+    </footer>
+  </form>
+</dialog>
 
 <script type="module">
-import { apiGet, apiPost, apiPut, apiDelete, showNotification } from "{{ url_for('static', path='assets/common.js') }}";
+import { apiGet, apiPost, apiPut, apiDelete, showNotification, formatDate } from "{{ url_for('static', path='assets/common.js') }}";
 
-let editingId = null;
+const state = {
+  channels: [],
+  editingId: null,
+};
 
-async function loadChannels() {
-  try {
-    const res = await apiGet('/api/channels');
-    const tbody = document.getElementById('channelsTableBody');
-    
-    if (res.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无渠道数据</td></tr>';
-      return;
-    }
-    
-    tbody.innerHTML = res.data.map(channel => `
-      <tr>
-        <td><code>${channel.channel_code}</code></td>
-        <td>${channel.name}</td>
-        <td><code>${channel.api_key.substring(0, 8)}...</code></td>
-        <td><span class="badge ${channel.status === 'active' ? 'lv-info' : 'lv-warn'}">${channel.status === 'active' ? '活跃' : '禁用'}</span></td>
-        <td>${new Date(channel.created_at).toLocaleString('zh-CN')}</td>
-        <td>
-          <button class="btn secondary btn-sm" onclick="editChannel(${channel.id})">编辑</button>
-          <button class="btn danger btn-sm" onclick="deleteChannel(${channel.id}, '${channel.channel_code}')">删除</button>
-        </td>
-      </tr>
-    `).join('');
-  } catch (err) {
-    showNotification('加载渠道数据失败', 'error');
-    console.error(err);
+const modal = document.getElementById('channel-modal');
+const form = document.getElementById('channel-form');
+const modalTitle = document.getElementById('channel-modal-title');
+const tableBody = document.getElementById('channel-tbody');
+const createBtn = document.getElementById('channel-create');
+const confirmModal = document.getElementById('confirm-modal');
+const confirmMessage = document.getElementById('confirm-message');
+const confirmAccept = document.getElementById('confirm-accept');
+let confirmResolve = null;
+
+function toggleModal(elem, show) {
+  if (!elem) return;
+  if (show) {
+    elem.showModal();
+  } else {
+    elem.close();
   }
 }
 
-function showAddModal() {
-  editingId = null;
-  document.getElementById('modalTitle').textContent = '添加渠道';
-  document.getElementById('channelForm').reset();
-  document.getElementById('channelModal').style.display = 'flex';
-}
+createBtn.addEventListener('click', () => {
+  state.editingId = null;
+  modalTitle.textContent = '新增渠道';
+  form.reset();
+  document.getElementById('channel-status').value = 'active';
+  toggleModal(modal, true);
+});
 
-function hideModal() {
-  document.getElementById('channelModal').style.display = 'none';
-}
+form.addEventListener('close', () => {
+  form.reset();
+});
 
-function editChannel(id) {
-  // 这里可以实现编辑功能
-  showNotification('编辑功能开发中...', 'info');
-}
-
-async function deleteChannel(id, code) {
-  if (!confirm(`确定要删除渠道 ${code} 吗？`)) return;
-  
-  try {
-    await apiDelete(`/api/channels/${id}`);
-    showNotification('渠道删除成功', 'success');
-    loadChannels();
-  } catch (err) {
-    showNotification('删除失败: ' + (err.data?.detail || err.message), 'error');
-  }
-}
-
-document.getElementById('channelForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  const formData = new FormData(e.target);
-  const data = Object.fromEntries(formData.entries());
-  
-  try {
-    if (editingId) {
-      await apiPut(`/api/channels/${editingId}`, data);
-      showNotification('渠道更新成功', 'success');
-    } else {
-      await apiPost('/api/channels', data);
-      showNotification('渠道创建成功', 'success');
-    }
-    
-    hideModal();
-    loadChannels();
-  } catch (err) {
-    showNotification('保存失败: ' + (err.data?.detail || err.message), 'error');
+modal.addEventListener('click', (event) => {
+  if (event.target.dataset.action === 'close' || event.target === modal) {
+    toggleModal(modal, false);
   }
 });
 
-// 初始化
-loadChannels();
+confirmModal.addEventListener('click', (event) => {
+  if (event.target.dataset.action === 'close' || event.target === confirmModal) {
+    toggleModal(confirmModal, false);
+    confirmResolve?.(false);
+  }
+});
+
+confirmModal.addEventListener('close', () => {
+  confirmResolve?.(false);
+  confirmResolve = null;
+});
+
+confirmAccept.addEventListener('click', () => {
+  toggleModal(confirmModal, false);
+  confirmResolve?.(true);
+  confirmResolve = null;
+});
+
+async function confirm(message) {
+  confirmMessage.textContent = message;
+  toggleModal(confirmModal, true);
+  return await new Promise((resolve) => {
+    confirmResolve = resolve;
+  });
+}
+
+async function fetchChannels() {
+  const response = await apiGet('/api/channels');
+  state.channels = response.data || [];
+  renderTable();
+}
+
+function renderTable() {
+  if (!state.channels.length) {
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无渠道数据</td></tr>';
+    return;
+  }
+  tableBody.innerHTML = state.channels.map((item) => {
+    const shortKey = item.api_key ? `${item.api_key.slice(0, 6)}…` : '-';
+    const statusBadge = item.status === 'active'
+      ? '<span class="badge lv-info">活跃</span>'
+      : '<span class="badge lv-warn">禁用</span>';
+    return `
+      <tr data-id="${item.id}">
+        <td><code>${item.channel_code}</code></td>
+        <td>${item.name}</td>
+        <td><code>${shortKey}</code></td>
+        <td>${statusBadge}</td>
+        <td>${item.created_at ? formatDate(item.created_at) : '-'}</td>
+        <td class="text-right">
+          <button class="btn secondary btn-xs" data-action="edit">编辑</button>
+          <button class="btn danger btn-xs" data-action="delete">删除</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function fillForm(channel) {
+  document.getElementById('channel-id').value = channel?.id || '';
+  document.getElementById('channel-code').value = channel?.channel_code || '';
+  document.getElementById('channel-name').value = channel?.name || '';
+  document.getElementById('channel-api').value = channel?.api_key || '';
+  document.getElementById('channel-hmac').value = channel?.secret_hmac || '';
+  document.getElementById('channel-status').value = channel?.status || 'active';
+}
+
+tableBody.addEventListener('click', async (event) => {
+  const action = event.target.dataset.action;
+  if (!action) return;
+  const row = event.target.closest('tr');
+  const id = Number(row?.dataset.id);
+  const channel = state.channels.find((item) => item.id === id);
+  if (!channel) return;
+
+  if (action === 'edit') {
+    state.editingId = id;
+    modalTitle.textContent = '编辑渠道';
+    fillForm(channel);
+    toggleModal(modal, true);
+  }
+
+  if (action === 'delete') {
+    const ok = await confirm(`确定删除渠道 ${channel.channel_code} 吗？`);
+    if (!ok) return;
+    try {
+      await apiDelete(`/api/channels/${id}`);
+      showNotification('渠道删除成功', 'success');
+      await fetchChannels();
+    } catch (error) {
+      showNotification(error.message, 'error');
+    }
+  }
+});
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const payload = {
+    channel_code: document.getElementById('channel-code').value.trim(),
+    name: document.getElementById('channel-name').value.trim(),
+    api_key: document.getElementById('channel-api').value.trim(),
+    secret_hmac: document.getElementById('channel-hmac').value.trim(),
+    status: document.getElementById('channel-status').value,
+  };
+
+  try {
+    if (state.editingId) {
+      await apiPut(`/api/channels/${state.editingId}`, payload);
+      showNotification('渠道更新成功', 'success');
+    } else {
+      await apiPost('/api/channels', payload);
+      showNotification('渠道创建成功', 'success');
+    }
+    toggleModal(modal, false);
+    await fetchChannels();
+  } catch (error) {
+    showNotification(error.message, 'error');
+  }
+});
+
+fetchChannels().catch((error) => showNotification(error.message, 'error'));
 </script>
 {% endblock %}

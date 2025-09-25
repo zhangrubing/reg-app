@@ -26,8 +26,13 @@ export async function apiRequest(url, options = {}) {
   return data;
 }
 
-export async function apiGet(url) {
-  return apiRequest(url, { method: 'GET' });
+export async function apiGet(url, params) {
+  let endpoint = url;
+  if (params && Object.keys(params).length > 0) {
+    const query = new URLSearchParams(params);
+    endpoint += (url.includes('?') ? '&' : '?') + query.toString();
+  }
+  return apiRequest(endpoint, { method: 'GET' });
 }
 
 export async function apiPost(url, body) {
@@ -40,6 +45,20 @@ export async function apiPut(url, body) {
 
 export async function apiDelete(url) {
   return apiRequest(url, { method: 'DELETE' });
+}
+
+export async function apiDownload(url, params) {
+  let endpoint = url;
+  if (params && Object.keys(params).length > 0) {
+    const query = new URLSearchParams(params);
+    endpoint += (url.includes('?') ? '&' : '?') + query.toString();
+  }
+  const res = await fetch(endpoint, { credentials: 'same-origin' });
+  if (!res.ok) {
+    const message = await res.text();
+    throw new Error(message || `HTTP ${res.status}`);
+  }
+  return res;
 }
 
 // 登出函数

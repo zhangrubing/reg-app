@@ -19,6 +19,7 @@ from .routers import devices as r_devices
 from .routers import activation as r_activation
 from .routers import users as r_users
 from .routers import audit as r_audit
+from .routers import licenses as r_licenses
 from .web import render
 # 直接在主应用中定义admin路由，避免导入问题
 from fastapi import APIRouter
@@ -227,6 +228,7 @@ app.include_router(r_devices.router)
 app.include_router(r_activation.router)
 app.include_router(r_users.router)
 app.include_router(r_audit.router)
+app.include_router(r_licenses.router)
 app.include_router(admin_router)
 
 
