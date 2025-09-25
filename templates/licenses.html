@@ -4,19 +4,19 @@
 <section class="page-section">
   <div class="page-toolbar">
     <div>
-      <h2>璁稿彲璇佸垪琛?/h2>
-      <p class="toolbar-subtitle">绠＄悊璁稿彲璇佹湁鏁堟湡銆佸悐閿€鐘舵€佷笌鍏宠仈璁惧</p>
+      <h2>许可证列表</h2>
+      <p class="toolbar-subtitle">管理许可证的有效期、吊销状态与关联信息</p>
     </div>
     <div class="toolbar-actions">
-      <input id="license-search" class="input input-sm" placeholder="鎼滅储 SN / 浜у搧 / 婵€娲荤爜">
+      <input id="license-search" class="input input-sm" placeholder="搜索 SN / 产品 / 激活码">
       <select id="license-status" class="input input-sm">
-        <option value="">鍏ㄩ儴鐘舵€?/option>
-        <option value="active">娲昏穬</option>
-        <option value="expired">宸茶繃鏈?/option>
-        <option value="revoked">宸插悐閿€</option>
+        <option value="">全部状态</option>
+        <option value="active">活跃</option>
+        <option value="expired">已过期</option>
+        <option value="revoked">已吊销</option>
       </select>
-      <button class="btn secondary" id="license-export">瀵煎嚭 CSV</button>
-      <button class="btn" id="license-create">鏂板缓璁稿彲璇?/button>
+      <button class="btn secondary" id="license-export">导出 CSV</button>
+      <button class="btn" id="license-create">新建许可证</button>
     </div>
   </div>
 
@@ -26,16 +26,16 @@
         <thead>
           <tr>
             <th>SN</th>
-            <th>浜у搧</th>
-            <th>鐘舵€?/th>
-            <th>绛惧彂鏃堕棿</th>
-            <th>杩囨湡鏃堕棿</th>
-            <th>鍏宠仈婵€娲?/th>
-            <th class="text-right">鎿嶄綔</th>
+            <th>产品</th>
+            <th>状态</th>
+            <th>签发时间</th>
+            <th>过期时间</th>
+            <th>关联激活</th>
+            <th class="text-right">操作</th>
           </tr>
         </thead>
         <tbody id="license-tbody">
-          <tr><td colspan="7" class="text-center text-muted">鍔犺浇涓?..</td></tr>
+          <tr><td colspan="7" class="text-center text-muted">加载中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -45,43 +45,43 @@
 <dialog id="license-modal" class="modal">
   <form method="dialog" class="modal-content" id="license-form">
     <header class="modal-header">
-      <h3 id="license-modal-title">鏂板缓璁稿彲璇?/h3>
-      <button type="button" class="modal-close" data-action="close">脳</button>
+      <h3 id="license-modal-title">新建许可证</h3>
+      <button type="button" class="modal-close" data-action="close">×</button>
     </header>
     <div class="modal-body">
       <input type="hidden" id="license-id">
       <label class="form-field">
-        <span>璁惧 SN</span>
+        <span>设备 SN</span>
         <input type="text" id="license-sn" required maxlength="128">
       </label>
       <label class="form-field">
-        <span>鍏宠仈婵€娲?ID (鍙€?</span>
+        <span>关联激活 ID（可选）</span>
         <input type="number" id="license-activation" min="0">
       </label>
       <label class="form-field">
-        <span>浜у搧鍚嶇О</span>
+        <span>产品名称</span>
         <input type="text" id="license-product" required maxlength="128">
       </label>
       <label class="form-field">
-        <span>鏈€澶ф縺娲绘鏁?/span>
+        <span>最大激活次数</span>
         <input type="number" id="license-max" min="1" value="1" required>
       </label>
       <label class="form-field">
-        <span>鏈夋晥鏈燂紙澶╋級</span>
+        <span>有效期（天）</span>
         <input type="number" id="license-valid" min="1" value="365">
       </label>
       <label class="form-field">
-        <span>澶囨敞</span>
+        <span>备注</span>
         <textarea id="license-notes" rows="2" maxlength="500"></textarea>
       </label>
       <label class="form-field">
-        <span>鎸囧畾杩囨湡鏃ユ湡 (鍙€?</span>
+        <span>指定过期日期（可选）</span>
         <input type="date" id="license-expire">
       </label>
     </div>
     <footer class="modal-footer">
-      <button type="button" class="btn secondary" data-action="close">鍙栨秷</button>
-      <button type="submit" class="btn">淇濆瓨</button>
+      <button type="button" class="btn secondary" data-action="close">取消</button>
+      <button type="submit" class="btn">保存</button>
     </footer>
   </form>
 </dialog>
@@ -89,12 +89,12 @@
 <dialog id="license-detail" class="modal">
   <form method="dialog" class="modal-content">
     <header class="modal-header">
-      <h3>璁稿彲璇佽鎯?/h3>
-      <button type="button" class="modal-close" data-action="close">脳</button>
+      <h3>许可证详情</h3>
+      <button type="button" class="modal-close" data-action="close">×</button>
     </header>
     <div class="modal-body" id="license-detail-body"></div>
     <footer class="modal-footer">
-      <button type="button" class="btn" data-action="close">鍏抽棴</button>
+      <button type="button" class="btn" data-action="close">关闭</button>
     </footer>
   </form>
 </dialog>
@@ -134,14 +134,19 @@ function toggleDialog(dialog, open) {
 
 function resetForm() {
   form.reset();
-  fieldExpire.value = '';
   fieldValid.value = '';
+  fieldExpire.value = '';
 }
 
 modal.addEventListener('click', (event) => {
   if (event.target.dataset.action === 'close' || event.target === modal) {
     toggleDialog(modal, false);
   }
+});
+
+modal.addEventListener('close', () => {
+  resetForm();
+  state.editingId = null;
 });
 
 detailModal.addEventListener('click', (event) => {
@@ -152,7 +157,7 @@ detailModal.addEventListener('click', (event) => {
 
 function renderTable() {
   if (!state.licenses.length) {
-    tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">暂无许可证数据</td></tr>';
     return;
   }
 
@@ -160,18 +165,19 @@ function renderTable() {
     const statusTag = item.status === 'active'
       ? '<span class="badge lv-info">活跃</span>'
       : item.status === 'expired'
-        ? '<span class="badge lv-warn">过期</span>'
+        ? '<span class="badge lv-warn">已过期</span>'
         : item.status === 'revoked'
-          ? '<span class="badge lv-error">吊销</span>'
+          ? '<span class="badge lv-error">已吊销</span>'
           : '<span class="badge">未知</span>';
-    return 
-      <tr data-id="">
-        <td><code></code></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
-        <td></td>
+
+    return `
+      <tr data-id="${item.id}">
+        <td><code>${item.sn}</code></td>
+        <td>${item.product_name || '-'}</td>
+        <td>${statusTag}</td>
+        <td>${item.issued_at ? formatDate(item.issued_at) : '-'}</td>
+        <td>${item.expires_at ? formatDate(item.expires_at) : '-'}</td>
+        <td>${item.activation_id || '-'}</td>
         <td class="text-right">
           <button class="btn secondary btn-xs" data-action="detail">详情</button>
           <button class="btn secondary btn-xs" data-action="edit">编辑</button>
@@ -179,51 +185,31 @@ function renderTable() {
           <button class="btn danger btn-xs" data-action="delete">删除</button>
         </td>
       </tr>
-    ;
+    `;
   }).join('');
 }
 
-function renderStats() {
-  apiGet('/api/licenses/stats').then((res) => {
-    const data = res.data || {};
-    document.getElementById('stat-total').textContent = data.total ?? 0;
-    document.getElementById('stat-active').textContent = data.active ?? 0;
-    document.getElementById('stat-expired').textContent = data.expired ?? 0;
-    document.getElementById('stat-revoked').textContent = data.revoked ?? 0;
-  }).catch((error) => showNotification(error.message, 'error'));
-}
-
-function fillForm(item) {
-  document.getElementById('license-id').value = item.id;
-  fieldSn.value = item.sn || '';
-  fieldActivation.value = item.activation_id || '';
-  fieldProduct.value = item.product_name || '';
-  fieldMax.value = item.max_activations || 1;
-  fieldNotes.value = item.notes || '';
-  fieldValid.value = '';
-  fieldExpire.value = item.expires_at ? item.expires_at.split('T')[0] : '';
-}
-
 function renderDetail(item) {
-  detailBody.innerHTML = 
+  detailBody.innerHTML = `
     <dl class="modal-dl">
-      <dt>ID</dt><dd></dd>
-      <dt>设备 SN</dt><dd><code></code></dd>
-      <dt>产品</dt><dd></dd>
-      <dt>最大激活次数</dt><dd></dd>
-      <dt>状态</dt><dd></dd>
-      <dt>签名</dt><dd><code></code></dd>
-      <dt>签发时间</dt><dd></dd>
-      <dt>过期时间</dt><dd></dd>
-      <dt>吊销时间</dt><dd></dd>
-      <dt>备注</dt><dd></dd>
+      <dt>ID</dt><dd>${item.id}</dd>
+      <dt>设备 SN</dt><dd><code>${item.sn}</code></dd>
+      <dt>产品</dt><dd>${item.product_name || '-'}</dd>
+      <dt>最大激活次数</dt><dd>${item.max_activations || '-'}</dd>
+      <dt>状态</dt><dd>${item.status}</dd>
+      <dt>签名</dt><dd><code>${item.signature}</code></dd>
+      <dt>签发时间</dt><dd>${item.issued_at ? formatDate(item.issued_at) : '-'}</dd>
+      <dt>过期时间</dt><dd>${item.expires_at ? formatDate(item.expires_at) : '-'}</dd>
+      <dt>吊销时间</dt><dd>${item.revoked_at ? formatDate(item.revoked_at) : '-'}</dd>
+      <dt>备注</dt><dd>${item.notes || '-'}</dd>
     </dl>
-  ;
+  `;
 }
 
 tableBody.addEventListener('click', async (event) => {
   const action = event.target.dataset.action;
   if (!action) return;
+
   const row = event.target.closest('tr');
   const id = Number(row?.dataset.id);
   const item = state.licenses.find((license) => license.id === id);
@@ -246,7 +232,7 @@ tableBody.addEventListener('click', async (event) => {
   if (action === 'revoke') {
     if (!confirm('确定要吊销该许可证吗？')) return;
     try {
-      await apiPost(/api/licenses//revoke);
+      await apiPost(`/api/licenses/${id}/revoke`);
       showNotification('许可证已吊销', 'success');
       await loadLicenses();
     } catch (error) {
@@ -258,7 +244,7 @@ tableBody.addEventListener('click', async (event) => {
   if (action === 'delete') {
     if (!confirm('确定要删除该许可证吗？')) return;
     try {
-      await apiDelete(/api/licenses/);
+      await apiDelete(`/api/licenses/${id}`);
       showNotification('许可证已删除', 'success');
       await loadLicenses();
     } catch (error) {
@@ -274,8 +260,19 @@ createBtn.addEventListener('click', () => {
   toggleDialog(modal, true);
 });
 
+function fillForm(item) {
+  document.getElementById('license-id').value = item.id;
+  fieldSn.value = item.sn || '';
+  fieldActivation.value = item.activation_id || '';
+  fieldProduct.value = item.product_name || '';
+  fieldMax.value = item.max_activations || 1;
+  fieldNotes.value = item.notes || '';
+  fieldExpire.value = item.expires_at ? item.expires_at.split('T')[0] : '';
+  fieldValid.value = '';
+}
+
 searchInput.addEventListener('input', (event) => {
-  state.filters.search = event.target.value;
+  state.filters.search = event.target.value.trim();
   loadLicenses();
 });
 
@@ -296,12 +293,12 @@ form.addEventListener('submit', async (event) => {
   };
 
   if (fieldExpire.value) {
-    payload.expires_at = ${fieldExpire.value}T00:00:00;
+    payload.expires_at = `${fieldExpire.value}T00:00:00`;
   }
 
   try {
     if (state.editingId) {
-      await apiPut(/api/licenses/, payload);
+      await apiPut(`/api/licenses/${state.editingId}`, payload);
       showNotification('许可证更新成功', 'success');
     } else {
       await apiPost('/api/licenses', payload);
@@ -337,11 +334,11 @@ async function loadLicenses() {
     const params = {};
     if (state.filters.search) params.search = state.filters.search;
     if (state.filters.status) params.status = state.filters.status;
+
     const res = await apiGet('/api/licenses', params);
     const data = res.data || {};
     state.licenses = data.items || [];
     renderTable();
-    renderStats();
   } catch (error) {
     state.licenses = [];
     renderTable();
@@ -349,8 +346,6 @@ async function loadLicenses() {
   }
 }
 
-Promise.all([loadLicenses()]).catch((error) => showNotification(error.message, 'error'));
+loadLicenses().catch((error) => showNotification(error.message, 'error'));
 </script>
 {% endblock %}
-
-
