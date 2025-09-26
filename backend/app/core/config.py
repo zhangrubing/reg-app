@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     """应用配置类"""
     
     # 应用配置
-    app_name: str = Field(default="软件注册与激活系统", description="应用名称")
+    app_name: str = Field(default="英智软件注册系统", description="应用名称")
     app_version: str = Field(default="1.0.0", description="应用版本")
     debug: bool = Field(default=False, description="调试模式")
     

@@ -1,4 +1,4 @@
-"""软件注册与激活系统主应用 - 简化版本"""
+"""英智软件注册系统主应用 - 简化版本"""
 from __future__ import annotations
 
 import asyncio
@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 # 基础配置
 class Settings:
     """简化配置类"""
-    app_name = "软件注册与激活系统"
+    app_name = "英智软件注册系统"
     app_version = "1.0.0"
     debug = False
     host = "0.0.0.0"
@@ -54,7 +54,7 @@ class ActivationRequest(BaseModel):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="软件注册与激活系统"
+    description="英智软件注册系统"
 )
 
 # 配置模板和静态文件

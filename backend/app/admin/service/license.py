@@ -62,7 +62,7 @@ class LicenseService:
             "activation_id": activation_id,
             "features": features or {"premium": True},
             "nonce": generate_license_signature(16),
-            "issuer": "软件注册与激活系统",
+            "issuer": "英智软件注册系统",
             "pubkey_id": "v1"
         }
         

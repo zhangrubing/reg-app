@@ -143,7 +143,7 @@ class ActivationService:
             "activation_id": activation.activation_id,
             "features": {"premium": True},  # TODO: 根据配置生成特性
             "nonce": generate_activation_code(16),
-            "issuer": "软件注册与激活系统",
+            "issuer": "英智软件注册系统",
             "pubkey_id": "v1"
         }
         

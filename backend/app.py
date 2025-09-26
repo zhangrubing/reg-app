@@ -1,4 +1,4 @@
-"""软件注册与激活系统主应用 - 严格按照one-box风格"""
+"""英智软件注册系统主应用 - 严格按照one-box风格"""
 import asyncio
 import os
 import time
@@ -17,6 +17,7 @@ from .routers import dashboard as r_dashboard
 from .routers import channels as r_channels
 from .routers import devices as r_devices
 from .routers import activation as r_activation
+from .routers import activations as r_activations
 from .routers import users as r_users
 from .routers import audit as r_audit
 from .routers import licenses as r_licenses
@@ -226,6 +227,7 @@ app.include_router(r_dashboard.router)
 app.include_router(r_channels.router)
 app.include_router(r_devices.router)
 app.include_router(r_activation.router)
+app.include_router(r_activations.router)
 app.include_router(r_users.router)
 app.include_router(r_audit.router)
 app.include_router(r_licenses.router)

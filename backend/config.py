@@ -5,7 +5,7 @@ from pathlib import Path
 # App config and paths
 APP_SECRET = os.environ.get("APP_SECRET", "change-this-secret-key-for-production")
 APP_ENV = os.environ.get("APP_ENV", "v1.0")
-APP_NAME = "软件注册与激活系统"
+APP_NAME = "英智软件注册系统"
 
 # project root (repo root): backend/config.py -> backend -> repo_root
 BASE_DIR = Path(__file__).resolve().parent.parent

@@ -1,5 +1,5 @@
 @echo off
-REM 软件注册与激活系统 - Windows一键运行脚本
+REM 英智软件注册系统 - Windows一键运行脚本
 REM 支持自动安装依赖并启动服务
 
 chcp 65001 >nul 2>&1
@@ -59,7 +59,7 @@ if not exist ".env" (
     echo %BLUE%[INFO]%NC% 生成配置文件...
     (
         echo # 应用配置
-        echo APP_NAME="软件注册与激活系统"
+        echo APP_NAME="英智软件注册系统"
         echo APP_VERSION="1.0.0"
         echo DEBUG=false
         echo.
@@ -98,7 +98,7 @@ if not exist ".env" (
 REM 显示欢迎信息
 echo.
 echo ╔══════════════════════════════════════════════════════════════╗
-echo ║                软件注册与激活系统                           ║
+echo ║                英智软件注册系统                           ║
 echo ║                Software Registration ^& Activation System    ║
 echo ╚══════════════════════════════════════════════════════════════╝
 echo.

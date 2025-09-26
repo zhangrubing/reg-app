@@ -132,7 +132,7 @@ async def activate_device(
                     "activation_id": activation_id,
                     "features": {"premium": True},
                     "nonce": generate_secure_token(16),
-                    "issuer": "软件注册与激活系统",
+                    "issuer": "英智软件注册系统",
                     "pubkey_id": "v1"
                 }
                 
@@ -317,7 +317,7 @@ async def channel_activate(
                     "activation_id": activation_id,
                     "features": {"premium": True},
                     "nonce": generate_secure_token(16),
-                    "issuer": "软件注册与激活系统",
+                    "issuer": "英智软件注册系统",
                     "pubkey_id": "v1"
                 }
                 

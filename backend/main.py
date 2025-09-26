@@ -53,7 +53,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title=settings.app_name,
     version=settings.app_version,
-    description="软件注册与激活系统API",
+    description="英智软件注册系统API",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
