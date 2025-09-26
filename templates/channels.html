@@ -5,7 +5,7 @@
   <div class="page-toolbar">
     <div>
       <h2>渠道列表</h2>
-      <p class="toolbar-subtitle">维护渠道编码、API 密钥与签名密钥</p>
+      <p class="toolbar-subtitle">维护渠道编码、API Key 与渠道公钥</p>
     </div>
     <button class="btn" id="channel-create">新增渠道</button>
   </div>
@@ -18,13 +18,14 @@
             <th>渠道代码</th>
             <th>名称</th>
             <th>API Key</th>
+            <th>渠道公钥</th>
             <th>状态</th>
             <th>创建时间</th>
             <th class="text-right">操作</th>
           </tr>
         </thead>
         <tbody id="channel-tbody">
-          <tr><td colspan="6" class="text-center text-muted">加载中...</td></tr>
+          <tr><td colspan="7" class="text-center text-muted">加载中...</td></tr>
         </tbody>
       </table>
     </div>
@@ -52,8 +53,8 @@
         <input type="text" id="channel-api" required maxlength="128">
       </label>
       <label class="form-field">
-        <span>HMAC 密钥</span>
-        <input type="text" id="channel-hmac" required maxlength="256">
+        <span>渠道公钥</span>
+        <textarea id="channel-hmac" required rows="6" maxlength="4096"></textarea>
       </label>
       <label class="form-field">
         <span>状态</span>
@@ -162,11 +163,12 @@ async function fetchChannels() {
 
 function renderTable() {
   if (!state.channels.length) {
-    tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">暂无渠道数据</td></tr>';
+    tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">暂无渠道数据</td></tr>';
     return;
   }
   tableBody.innerHTML = state.channels.map((item) => {
     const shortKey = item.api_key ? `${item.api_key.slice(0, 6)}…` : '-';
+    const shortPub = item.secret_hmac ? `${item.secret_hmac.slice(0, 12)}…` : '-';
     const statusBadge = item.status === 'active'
       ? '<span class="badge lv-info">活跃</span>'
       : '<span class="badge lv-warn">禁用</span>';
@@ -175,6 +177,7 @@ function renderTable() {
         <td><code>${item.channel_code}</code></td>
         <td>${item.name}</td>
         <td><code>${shortKey}</code></td>
+        <td><code>${shortPub}</code></td>
         <td>${statusBadge}</td>
         <td>${item.created_at ? formatDate(item.created_at) : '-'}</td>
         <td class="text-right">

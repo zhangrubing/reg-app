@@ -1,4 +1,5 @@
 .env
 venv/
-data/regapp.db
-data/regapp.db
+data/
+demos/
+

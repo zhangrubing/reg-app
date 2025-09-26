@@ -1,0 +1,97 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<section class="page-section">
+  <div class="page-toolbar">
+    <div>
+      <h2>Ed25519 钥匙生成</h2>
+      <p class="toolbar-subtitle">一键生成公钥 / 私钥，可复制或下载 PEM 文件</p>
+    </div>
+    <button class="btn" id="generate-btn">生成新钥匙对</button>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <div class="section-title">私钥 (PKCS#8 PEM)</div>
+      <textarea id="private-output" class="input" rows="16" readonly placeholder="点击生成按钮获取私钥"></textarea>
+      <div class="toolbar-actions" style="margin-top:12px; justify-content:flex-end;">
+        <button class="btn secondary btn-xs" data-copy="private-output">复制</button>
+        <button class="btn btn-xs" data-download="private-output" data-filename="ed25519-private-key.pem">下载</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">公钥 (SubjectPublicKeyInfo PEM)</div>
+      <textarea id="public-output" class="input" rows="16" readonly placeholder="点击生成按钮获取公钥"></textarea>
+      <div class="toolbar-actions" style="margin-top:12px; justify-content:flex-end;">
+        <button class="btn secondary btn-xs" data-copy="public-output">复制</button>
+        <button class="btn btn-xs" data-download="public-output" data-filename="ed25519-public-key.pem">下载</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script type="module">
+import { showNotification } from "{{ url_for('static', path='assets/common.js') }}";
+
+const generateBtn = document.getElementById('generate-btn');
+const privateField = document.getElementById('private-output');
+const publicField = document.getElementById('public-output');
+
+async function generateKeys() {
+  generateBtn.disabled = true;
+  generateBtn.classList.add('btn-loading');
+  try {
+    const resp = await fetch('/api/tools/keygen', { method: 'POST' });
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(text || `HTTP ${resp.status}`);
+    }
+    const data = await resp.json();
+    const payload = data.data || {};
+    privateField.value = payload.private_pem || '';
+    publicField.value = payload.public_pem || '';
+    showNotification('已生成新的钥匙对', 'success');
+  } catch (error) {
+    showNotification(error.message || '生成失败', 'error');
+  } finally {
+    generateBtn.disabled = false;
+    generateBtn.classList.remove('btn-loading');
+  }
+}
+
+generateBtn.addEventListener('click', generateKeys);
+
+document.querySelectorAll('[data-copy]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.copy);
+    if (!target || !target.value) {
+      showNotification('没有可复制的内容', 'warning');
+      return;
+    }
+    navigator.clipboard?.writeText(target.value)
+      .then(() => showNotification('已复制到剪贴板', 'success'))
+      .catch(() => showNotification('复制失败，请手动选择文本', 'error'));
+  });
+});
+
+document.querySelectorAll('[data-download]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const target = document.getElementById(btn.dataset.download);
+    if (!target || !target.value) {
+      showNotification('没有可下载的内容', 'warning');
+      return;
+    }
+    const blob = new Blob([target.value], { type: 'application/x-pem-file' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = btn.dataset.filename || 'key.pem';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  });
+});
+</script>
+{% endblock %}

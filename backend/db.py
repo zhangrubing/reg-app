@@ -105,6 +105,95 @@ CREATE TABLE IF NOT EXISTS licenses (
   revoked_at TIMESTAMP,
   FOREIGN KEY (activation_id) REFERENCES activations(id)
 );
+
+-- 渠道密钥表
+CREATE TABLE IF NOT EXISTS channel_keys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id INTEGER NOT NULL,
+  channel_code TEXT NOT NULL,
+  kid TEXT NOT NULL,
+  algorithm TEXT NOT NULL,
+  public_key TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  rotated_at TIMESTAMP,
+  FOREIGN KEY (channel_id) REFERENCES channels(id),
+  UNIQUE(channel_id, kid)
+);
+
+-- 渠道子账户与TOTP
+CREATE TABLE IF NOT EXISTS channel_subaccounts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id INTEGER NOT NULL,
+  channel_code TEXT NOT NULL,
+  subaccount TEXT NOT NULL,
+  totp_secret TEXT NOT NULL,
+  status TEXT DEFAULT 'active',
+  last_used_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(channel_id, subaccount),
+  FOREIGN KEY (channel_id) REFERENCES channels(id)
+);
+
+-- 渠道授权胶囊 CAC
+CREATE TABLE IF NOT EXISTS cac_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  jti TEXT UNIQUE NOT NULL,
+  channel_id INTEGER NOT NULL,
+  channel_code TEXT NOT NULL,
+  payload TEXT NOT NULL,
+  quota_max INTEGER NOT NULL,
+  quota_used INTEGER NOT NULL DEFAULT 0,
+  valid_from INTEGER,
+  valid_to INTEGER,
+  status TEXT DEFAULT 'active',
+  encrypted INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP,
+  FOREIGN KEY (channel_id) REFERENCES channels(id)
+);
+
+-- 激活请求防重放
+CREATE TABLE IF NOT EXISTS activation_requests (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  channel_id INTEGER NOT NULL,
+  channel_code TEXT NOT NULL,
+  nonce TEXT NOT NULL,
+  iat INTEGER NOT NULL,
+  request_hash TEXT NOT NULL,
+  subaccount TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP,
+  UNIQUE(channel_id, nonce),
+  FOREIGN KEY (channel_id) REFERENCES channels(id)
+);
+
+-- 许可证撤销表
+CREATE TABLE IF NOT EXISTS license_revoke_list (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  license_id TEXT NOT NULL,
+  channel_code TEXT,
+  reason TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(license_id)
+);
+
+-- 激活审计表
+CREATE TABLE IF NOT EXISTS activation_audit (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  license_id TEXT,
+  sn TEXT,
+  channel_code TEXT,
+  subaccount TEXT,
+  cac_jti TEXT,
+  device_pubkey_hash TEXT,
+  decision TEXT,
+  reason TEXT,
+  ip TEXT,
+  geo TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 '''
 
 
@@ -132,6 +221,13 @@ async def init_db():
             "CREATE INDEX IF NOT EXISTS idx_activations_code ON activations(activation_code)",
             "CREATE INDEX IF NOT EXISTS idx_activations_channel ON activations(channel_id)",
             "CREATE INDEX IF NOT EXISTS idx_activations_sn ON activations(sn)",
+            "CREATE INDEX IF NOT EXISTS idx_cac_tokens_jti ON cac_tokens(jti)",
+            "CREATE INDEX IF NOT EXISTS idx_cac_tokens_channel ON cac_tokens(channel_id)",
+            "CREATE INDEX IF NOT EXISTS idx_channel_keys_channel ON channel_keys(channel_id)",
+            "CREATE INDEX IF NOT EXISTS idx_channel_subaccounts_channel ON channel_subaccounts(channel_id)",
+            "CREATE INDEX IF NOT EXISTS idx_activation_requests_nonce ON activation_requests(channel_id, nonce)",
+            "CREATE INDEX IF NOT EXISTS idx_license_revoke_list ON license_revoke_list(license_id)",
+            "CREATE INDEX IF NOT EXISTS idx_activation_audit_created ON activation_audit(created_at)",
             "CREATE INDEX IF NOT EXISTS idx_licenses_sn ON licenses(sn)",
             "CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at)",
             "CREATE INDEX IF NOT EXISTS idx_sys_logs_created ON sys_logs(created_at)",

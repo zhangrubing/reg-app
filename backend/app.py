@@ -2,6 +2,7 @@
 import asyncio
 import os
 import time
+import logging
 from contextlib import asynccontextmanager
 from datetime import datetime
 
@@ -9,8 +10,18 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 
 # 导入配置和模块
-from .config import BASE_DIR, DB_PATH, APP_NAME, HOST, PORT, RELOAD
+from .config import (
+    BASE_DIR,
+    DB_PATH,
+    APP_NAME,
+    HOST,
+    PORT,
+    RELOAD,
+    PLATFORM_SIGNING_KEY_PATH,
+    PLATFORM_SIGNING_PUBLIC_KEY_PATH,
+)
 from .db import init_db
+from .security.keys import ensure_platform_keypair
 from .middleware import AuthMiddleware
 from .routers import auth as r_auth
 from .routers import dashboard as r_dashboard
@@ -18,6 +29,7 @@ from .routers import channels as r_channels
 from .routers import devices as r_devices
 from .routers import activation as r_activation
 from .routers import activations as r_activations
+from .routers import tools as r_tools
 from .routers import users as r_users
 from .routers import audit as r_audit
 from .routers import licenses as r_licenses
@@ -28,6 +40,10 @@ from fastapi import APIRouter
 # 创建管理后台路由
 admin_router = APIRouter(prefix="/admin", tags=["管理后台"])
 
+
+logger = logging.getLogger('regapp')
+if not logger.handlers:
+    logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s in %(name)s: %(message)s')
 
 def _wants_html(request: Request) -> bool:
     """Return True when the client expects an HTML document."""
@@ -191,15 +207,32 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 @app.on_event("startup")
 async def on_startup():
     """应用启动事件"""
-    await init_db()
+    logger.info('Application startup initiated')
+    try:
+        ensure_platform_keypair()
+        logger.info('Platform signing keys ready (priv=%s, pub=%s)', PLATFORM_SIGNING_KEY_PATH, PLATFORM_SIGNING_PUBLIC_KEY_PATH)
+    except Exception:
+        logger.exception('Failed to ensure platform signing keys')
+        raise
+
+    try:
+        await init_db()
+        logger.info('Database initialized at %s', DB_PATH)
+    except Exception:
+        logger.exception('Database initialization failed')
+        raise
+
     asyncio.create_task(_system_monitor())
     await log_system_event("INFO", "system", "应用启动完成")
+    logger.info('Application startup completed')
 
 
 @app.on_event("shutdown")
 async def on_shutdown():
     """应用关闭事件"""
+    logger.info('Application shutdown initiated')
     await log_system_event("INFO", "system", "应用正在关闭")
+    logger.info('Application shutdown completed')
 
 
 @app.get("/ping")
@@ -217,7 +250,7 @@ async def _system_monitor():
             # 例如：检查数据库连接、清理过期数据等
             await asyncio.sleep(interval)
         except Exception:
-            pass
+            logger.exception('System monitor encountered an error')
 
 
 # 中间件和路由器
@@ -228,6 +261,7 @@ app.include_router(r_channels.router)
 app.include_router(r_devices.router)
 app.include_router(r_activation.router)
 app.include_router(r_activations.router)
+app.include_router(r_tools.router)
 app.include_router(r_users.router)
 app.include_router(r_audit.router)
 app.include_router(r_licenses.router)

@@ -84,17 +84,17 @@ html[data-theme="light"] .kpi-pill{background:rgba(0,0,0,.02)}
 /* Navigation colors */
 :root{
   --c-dashboard:#2dd4bf; --c-channels:#60a5fa; --c-devices:#f472b6; --c-activations:#22c55e;
-  --c-licenses:#f59e0b; --c-users:#fb7185; --c-audit:#a78bfa; --c-about:#8b5cf6;
+  --c-licenses:#f59e0b; --c-keygen:#0ea5e9; --c-users:#fb7185; --c-audit:#a78bfa; --c-about:#8b5cf6;
 }
 html[data-theme="light"]{
   --c-dashboard:#14b8a6; --c-channels:#3b82f6; --c-devices:#ec4899; --c-activations:#16a34a;
-  --c-licenses:#d97706; --c-users:#f43f5e; --c-audit:#8b5cf6; --c-about:#7c3aed;
+  --c-licenses:#d97706; --c-keygen:#0ea5e9; --c-users:#f43f5e; --c-audit:#8b5cf6; --c-about:#7c3aed;
 }
 
 .nav a{--ico:var(--muted)}
 .nav a.m-dashboard{--ico:var(--c-dashboard)} .nav a.m-channels{--ico:var(--c-channels)} 
 .nav a.m-devices{--ico:var(--c-devices)} .nav a.m-activations{--ico:var(--c-activations)}
-.nav a.m-licenses{--ico:var(--c-licenses)} .nav a.m-users{--ico:var(--c-users)}
+.nav a.m-licenses{--ico:var(--c-licenses)} .nav a.m-keygen{--ico:var(--c-keygen)} .nav a.m-users{--ico:var(--c-users)}
 .nav a.m-audit{--ico:var(--c-audit)} .nav a.m-about{--ico:var(--c-about)}
 
 .nav a .ico{color:var(--ico)}
